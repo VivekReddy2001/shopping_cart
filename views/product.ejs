@@ -1,0 +1,485 @@
+
+  <!DOCTYPE html>  
+ <html>  
+      <head>  
+           <title>Products</title>  
+           <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+          <!-- JavaScript Bundle with Popper -->
+          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
+          <!-- CSS only -->
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+          <link rel="preconnect" href="https://fonts.gstatic.com">
+          <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,200;0,300;1,300&display=swap" rel="stylesheet">
+
+
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js" integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf" crossorigin="anonymous"></script>
+          <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.1/dist/umd/popper.min.js" integrity="sha384-SR1sx49pcuLnqZUnnPwx6FCym0wLsk5JZuNx2bPPENzswTNFaQU1RDvt3wT4gWFG" crossorigin="anonymous"></script>
+          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.min.js" integrity="sha384-j0CNLUeiqtyaRmlzUHCPZ+Gy5fQu0dQ6eZ/xAww941Ai1SxSY+0EQqNXNE6DZiVc" crossorigin="anonymous"></script>
+          <!----------font awesome-------------->
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/fontawesome.min.css" integrity="sha384-wESLQ85D6gbsF459vf1CiZ2+rr+CsxRY0RpiF1tLlQpDnAgg6rwdsUF1+Ics2bni" crossorigin="anonymous">
+          <!-- Jquery -->
+          <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+          <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-ajaxy/1.6.1/scripts/jquery.ajaxy.min.js"></script> -->
+          <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+<style>
+.header{
+    
+    text-align:center;
+    padding :1px;
+    color: white;
+  }
+    </style>
+
+<!-- testimonial and brands style -->
+<style>
+                
+        .line{
+          width: 70%;
+          height: 3px;
+          background-color: rgb(255, 76, 48);
+          transform: translate(21%,-20%);
+          margin-top:50px;
+        }
+
+
+/*-----------------------------testimonial--------------------------------*/
+
+        .testimonial{
+          padding-top: 3rem;
+          margin-left: 22rem;
+        }
+        .testimonial .col-3{
+          text-align: center;
+          padding: 6rem 2rem;
+          box-shadow: 0 0 20px 0px rgba(0,0,0,0.1);
+          cursor: pointer;
+          transition: transform 0.5s;
+          margin-left: 2rem;
+        }
+        .testimonial .col-3 img{
+          width: 50px;
+          margin-top: 2rem;
+          border-radius: 50%;
+        }
+        .testimonial .col-3:hover{
+          transform: translateY(-10px);
+        }
+        .testimonial .col-3 p{
+          font-size: 1.1rem;
+          margin: 1.2rem 0;
+          color: #777;
+        }
+        .testimonial .col-3 h3{
+          padding-top: 1rem;
+        }
+        .fa.fa-quote-left{
+          font-size: 2rem;
+          color: #ff523b;
+        }
+
+        /*-------------------------------brands------------------------------------*/
+
+        .brands{
+          margin: 7rem auto;
+        }
+        .col-5{
+          width: 10rem;
+          margin: 2rem;
+        }
+        .col-5 img{
+          width: 100%;
+          cursor: pointer;
+          filter: grayscale(100%);
+        }
+        .col-5 img:hover{
+          filter: grayscale(0);
+        }
+
+
+</style>
+<!-- footr style -->
+<style>
+
+.footer{
+  background: #000;
+  color: #8a8a8a;
+  font-size: 15px;
+  padding: 48px 16px;
+}
+.footer p{
+  color: #8a8a8a;
+}
+.footer h3{
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.footer-col-1, .footer-col-2, .footer-col-3, .footer-col-4{
+  min-width: 200px;
+  margin-bottom: 16px;
+}
+.footer-col-2{
+  flex:1;
+  text-align: left;
+}
+.footer-col-2 img{
+  width: 18rem;
+  margin-bottom: 1rem;
+}
+.footer-col-3, .footer-col-4{
+  flex-basis: 12%;
+  text-align: center;s
+}
+ul{
+  list-style-type: none;
+}
+.footer hr{
+  border: none;
+  background: #b5b5b5;
+  height: 1px;
+  margin: 1rem 0;
+}
+.copyright{
+  text-align: center;
+}
+
+  
+    
+</style>
+         
+</head>  
+<body> 
+<div method="post">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark" >
+  <div class="container-fluid">
+    <a class="navbar-brand kol" href="#"><img src="images1/logo-white.png" width="80"></a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">About</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">Contact</a>
+        </li>
+        <!-- Category Filter -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Category
+          </a>
+          <ul class="dropdown-menu" id="category-filter" aria-labelledby="navbarDropdown">
+            <li><span class="dropdown-item">ALL</span></li>
+            <% category.forEach((item)=>{ %>
+              <li><span class="dropdown-item"><%= item.category_name.toUpperCase() %></span></li>  
+            <% }) %>
+          </ul>
+        </li>
+        <!-- brand Filter -->
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Brand
+          </a>
+          <ul class="dropdown-menu" id="brand-filter" aria-labelledby="navbarDropdown">
+            <li><span class="dropdown-item">ALL</span></li>
+            <% brands.forEach((item)=>{ %>
+              <li><span class="dropdown-item"><%= item.brand_name.toUpperCase() %></span></li>  
+            <% }) %>
+          </ul>
+        </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Sort By
+          </a>
+          <ul class="dropdown-menu" id="sort" aria-labelledby="navbarDropdown">
+            <li><span class="dropdown-item">Low to High</span></li>
+            <li><span class="dropdown-item">High To Low</span></li>
+          </ul>
+        </li>
+
+      </ul>
+      <div class="d-flex">
+        <input class="form-control me-2" type="search" onkeyup="myFunction()" oninput="myFunction()" onchange="myFunction()"   id="search"  placeholder="Search" aria-label="Search"/>
+        <button class="btn btn-outline-success" onclick="voice()" ><i class="fa fa-microphone" aria-hidden="true"></i></button>
+      </div>
+
+      <ul class="navbar-nav  mb-2 mb-lg-0">
+      <li class="nav-item dropdown" >
+        <a class="nav-link dropdown-toggle username" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="color: white;"><%=username%></a>
+        
+        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <li><a class="dropdown-item" href="#">My Profile</a></li>
+         
+          <li><a class="dropdown-item" href="#">History</a></li>
+
+          <li><hr class="dropdown-divider"></li>
+          <li id="login">
+            <a class="dropdown-item" href="/login">Log In</a>
+          </li>
+          <li id="register">
+            <a class="dropdown-item" href="/register">Register</a>
+          </li>
+          <li id="logout">
+              <a class="dropdown-item" href="/logout">Logout</a>
+         </li>
+        </ul>
+        
+      </li>
+
+      <li>
+      <a class="nav-link" href="cart" style="margin-right:20px">  <img src="images/cart5.png" style="width:30px; height:30px;background:black;border-radius:50%"> </a>
+  
+      </li>
+      
+      </ul>
+    
+       
+    </div>
+  </div>
+</nav>
+<style>
+.sidebar {
+  float: left;
+  width: 15%;
+  height: 100%; /* only for demonstration, should be removed */
+  background: #282828;
+  color: white;
+  padding: 40px;
+  text-align:center;
+}
+
+.content{
+  float: left;
+  width: 80%;
+  height: 1800px; /* only for demonstration, should be removed */
+  background: #ccc;
+  padding: 20px;
+  
+}
+  .navsec::after {
+  content: "";
+  display: table;
+  clear: both;
+
+}
+.resize{
+  height: 100vh;
+  width: 250px;
+  background: white;
+}
+.setinline{
+   display: inline;
+   padding : 2rem;
+   float : left;
+   margin: 1rem;
+   box-shadow: 0 0 20px 0px rgba(0,0,0,0.1);
+  transition: transform 0.5s;
+}
+.setinline:hover{
+  transform: translateY(-10px);
+}
+.content1{
+    display: block;
+    position : relative;
+    white-space : nowrap;
+    padding :  0px;
+    margin: 0px;
+    top: 0px;
+}
+.product-name a{
+  text-decoration: none;
+  color: black;
+}
+.rating i{
+  color: #FFD700;
+}
+
+</style>
+
+<div class="navsec" id="collection">
+     <%    products.forEach((item)=>{ %>
+          <div class='content1 products' p_name = "<%= item.p_name%>" p_price = <%=item.p_price %> p_brand = "<%= item.p_brand %>" p_category = "<%=item.category_name %>">
+            <div class='setinline'> 
+            <a href='#'><div class='product'>
+            <div class='product-img'>
+              <center><img src='images/<%= item.p_image%>' style='max-height: 170px;' alt='missing Image'></center>
+            </div>
+            </a>
+            <div class='product-body' style='text-align:center'>
+              <p class='product-category'><%= item.category_name %></p>
+              <h5  class='product-name header-cart-item-name'><a href='#'><%= item.p_name %></a></h5>
+              <div class='rating'>
+                <i class='fa fa-star'></i>
+                <i class='fa fa-star'></i>
+                <i class='fa fa-star'></i>
+                <i class='fa fa-star'></i>
+                <i class='fa fa-star-o'></i>
+              </div>
+              <h6  class='product-price header-cart-item-info' style='color:red;font-size:20px;'>$<%= item.p_price%><del class='product-old-price' style='font-size:13px;'>$<%= item.p_price+50%></del></h6>
+            <div class='product-btns' style='text-align:center'>
+              
+              </div>
+            </div>
+            
+            <div class='add-to-cart' style='text-align:center;margin-top: 3px'>
+              <!-- <i class='fa fa-shopping-cart'></i> -->
+              <button  pid='$pro_id' class='btn btn-warning addToCart' id = "<%=item.p_id%>"> Add To Cart</button>
+              </div>
+          </div>
+            </div>
+        
+        </div>
+
+     <%   });        %>
+
+  </div>
+ 
+ 
+
+<!--footer-->
+
+<div class="footer">
+    <div class="container">
+      <div class="row" class="kol">
+        <div class="footer-col-2">
+          <img src="images/logo-white.png">
+          <p>Our purpose is to Sustainably make the pleasure and Benefits of Sports Accessible to the many.</p>
+        </div>
+        <div class="footer-col-3">
+          <h3>Useful Links</h3>
+          <ul>
+            <li>Coupons</li>
+            <li>Blog Post</li>
+            <li>Return Policy</li>
+            <li>Join Affiliate</li>
+          </ul>
+        </div>
+        <div class="footer-col-4">
+          <h3>Follow us</h3>
+          <ul>
+            <li>Facebook</li>
+            <li>Twitter</li>
+            <li>Instagram</li>
+            <li>Youtube</li>
+          </ul>
+        </div>
+      </div>
+      <hr>
+      <p class="copyright">Copyright © 2010-2021 Freepik Company S.L. All Rights Reserved.</p>
+    </div>
+  </div>
+
+  <!-- Script Section -->
+
+  <script>
+    localStorage.clear();
+    const addToCart = $('.addToCart');
+    addToCart.click((event)=>{
+      const pro_id = $(event.target).attr('id');
+      $.ajax({
+        url:'/api/checkLoggedIn',
+        type:"get",
+        success:(loggedIn)=>{
+          console.log(loggedIn);
+          if(loggedIn){
+            $.ajax({
+              url:`/api/addToCart/${pro_id}`,
+              type:"put",
+              success:(added)=>{
+                alert("Item "+added+" Succussfully added to cart")
+              }
+            })
+          }
+          else{
+            alert('Please login');
+            window.location.href = "/login";
+          }
+        }
+      })
+    })
+
+    const account = document.getElementsByClassName('username')[0];
+    console.log(account.innerHTML)
+    if(account.innerHTML == ""){
+      account.innerHTML = "Accounts";
+      document.querySelector('#logout').style.display = "none";
+    }else{
+      document.querySelector('#register').style.display = "none";
+      document.querySelector('#login').style.display = "none";
+    }
+
+
+    // search
+    function myFunction() {
+        var products = $('.products');
+        var n = products.length;
+        var search = $('#search').val().toLowerCase();
+        console.log(search)
+        for(var i = 0 ;  i<n;i++){
+          var element = $(products.get(i)).hide();
+          var p_name = element.attr('p_name').toLowerCase();
+          var p_brand = element.attr('p_brand').toLowerCase();
+          var p_category = element.attr('p_category').toLowerCase();
+          if(localStorage.p_category == null || localStorage.p_category == 'all' || localStorage.p_category == p_category){
+            if(localStorage.p_brand == null || localStorage.p_brand == 'all' || localStorage.p_brand == p_brand){
+              if(p_name.includes(search) || p_brand.includes(search) || p_category.includes(search)){
+                element.show();
+              }else element.hide();
+            }else element.hide();
+          }else element.hide();
+        }
+    }
+    $('#category-filter li').click((event)=>{
+        var category = event.target.innerHTML.toLowerCase();
+        console.log(category)
+        localStorage.p_category = category;
+        myFunction();
+    })
+
+    $('#brand-filter li').click((event)=>{
+        var brand = event.target.innerHTML.toLowerCase();
+        localStorage.p_brand = brand;
+        myFunction();
+    })
+
+    $('#sort li').click((event)=>{
+      var toSort = document.getElementById('collection').children;
+      toSort = Array.prototype.slice.call(toSort, 0);
+        if(event.target.innerHTML.toLowerCase() == 'low to high'){
+          toSort.sort(function(a, b) {
+              return a.getAttribute('p_price') - b.getAttribute('p_price')
+          });
+        }else {
+          toSort.sort(function(a, b) {
+              return b.getAttribute('p_price') - a.getAttribute('p_price')
+          });
+        }
+        var parent = document.getElementById('collection');
+        parent.innerHTML = "";
+
+        for(var i = 0, l = toSort.length; i < l; i++) {
+            parent.appendChild(toSort[i]);
+        }
+    })
+    function voice(){
+        var recognisation = new webkitSpeechRecognition();
+        recognisation.lang = 'en-GB';
+        recognisation.start();
+        recognisation.onresult = function(event){
+            console.log(event.results[0][0].transcript);
+            document.getElementById('search').value = event.results[0][0].transcript;
+            myFunction();
+        }
+    }
+  </script>
+</body>  
+ </html>  
+ 
