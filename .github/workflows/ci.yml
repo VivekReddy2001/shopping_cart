@@ -20,7 +20,7 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - name: Cache MongoDB binaries used by the tests
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/mongodb-binaries
           key: mongodb-binaries-${{ runner.os }}-v1
