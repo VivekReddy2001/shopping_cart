@@ -1,0 +1,35 @@
+# Full local stack: the app + MongoDB 7.
+#   docker compose up --build   →   http://localhost:3000
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      APP_URL: http://localhost:3000
+      MONGODB_URI: mongodb://mongo:27017/kartly
+      SESSION_SECRET: ${SESSION_SECRET:-local-docker-secret-change-me-0123456789abcdef}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@12345}
+      AUTO_SEED: "true"
+      COOKIE_SECURE: "false"
+      TRUST_PROXY: "0"
+
+volumes:
+  mongo-data:

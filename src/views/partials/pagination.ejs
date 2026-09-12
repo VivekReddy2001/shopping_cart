@@ -1,0 +1,27 @@
+<% if (pages > 1) {
+  const items = [];
+  for (let i = 1; i <= pages; i += 1) {
+    if (i === 1 || i === pages || Math.abs(i - page) <= 1) items.push(i);
+    else if (items[items.length - 1] !== 'gap') items.push('gap');
+  }
+  const linkAttr = typeof pageLinkAttr === 'string' ? pageLinkAttr : '';
+  const href = (n) => basePath + buildQuery(baseQuery, { page: n === 1 ? null : n });
+%>
+<nav class="pagination" aria-label="Pagination">
+  <% if (page > 1) { %>
+    <a href="<%= href(page - 1) %>" <%- linkAttr %> rel="prev" aria-label="Previous page"><%- icon('chevron-left', 'icon-sm') %></a>
+  <% } else { %>
+    <span class="disabled" aria-hidden="true"><%- icon('chevron-left', 'icon-sm') %></span>
+  <% } %>
+  <% items.forEach(function (n) { %>
+    <% if (n === 'gap') { %><span class="gap" aria-hidden="true">…</span>
+    <% } else if (n === page) { %><span aria-current="page"><%= n %></span>
+    <% } else { %><a href="<%= href(n) %>" <%- linkAttr %> aria-label="Page <%= n %>"><%= n %></a><% } %>
+  <% }) %>
+  <% if (page < pages) { %>
+    <a href="<%= href(page + 1) %>" <%- linkAttr %> rel="next" aria-label="Next page"><%- icon('chevron-right', 'icon-sm') %></a>
+  <% } else { %>
+    <span class="disabled" aria-hidden="true"><%- icon('chevron-right', 'icon-sm') %></span>
+  <% } %>
+</nav>
+<% } %>

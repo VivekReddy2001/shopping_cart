@@ -1,0 +1,37 @@
+<% const p = product; const lowStock = p.stock > 0 && p.stock <= store.lowStockThreshold; %>
+<article class="product-card<%= p.stock === 0 ? ' is-out' : '' %>">
+  <a class="product-media" href="/products/<%= p.slug %>" tabindex="-1" aria-hidden="true">
+    <img src="<%= p.image %>" alt="" loading="lazy" width="400" height="400">
+    <div class="product-flags">
+      <% if (p.stock === 0) { %><span class="badge badge-neutral">Sold out</span>
+      <% } else if (p.discountPercent >= 15) { %><span class="badge badge-deal"><%= p.discountPercent %>% off</span><% } %>
+    </div>
+  </a>
+  <div class="product-body">
+    <span class="product-brand"><%= p.brand ? p.brand.name : '' %></span>
+    <a class="product-name" href="/products/<%= p.slug %>"><%= p.name %></a>
+    <% if (p.rating && p.rating.count) { %>
+      <span class="rating"><span class="rating-pill"><%= p.rating.average.toFixed(1) %> <%- icon('star') %></span> <%= formatNumber(p.rating.count) %> <%= p.rating.count === 1 ? 'review' : 'reviews' %></span>
+    <% } %>
+    <div class="price-row">
+      <span class="price"><%= formatPrice(p.price) %></span>
+      <% if (p.mrp > p.price) { %>
+        <span class="mrp"><span class="sr-only">MRP </span><%= formatPrice(p.mrp) %></span>
+        <span class="discount"><%= p.discountPercent %>% off</span>
+      <% } %>
+    </div>
+    <% if (lowStock) { %><span class="stock-note">Only <%= p.stock %> left</span><% } %>
+    <% if (p.stock > 0) { %>
+      <form method="post" action="/cart/items" data-add-form>
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <input type="hidden" name="productId" value="<%= p._id %>">
+        <input type="hidden" name="next" value="<%= currentUrl %>">
+        <button type="submit" class="btn btn-soft btn-block" data-add-to-cart="<%= p._id %>" data-product-name="<%= p.name %>">
+          <%- icon('cart') %> Add to cart
+        </button>
+      </form>
+    <% } else { %>
+      <button type="button" class="btn btn-block" disabled>Out of stock</button>
+    <% } %>
+  </div>
+</article>

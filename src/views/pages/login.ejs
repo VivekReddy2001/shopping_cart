@@ -1,0 +1,31 @@
+<div class="container auth-page">
+  <div class="auth-card">
+    <a class="brand" href="/"><img src="/img/logo-mark.svg" alt="" width="36" height="36"><%= appName %></a>
+    <h1>Welcome back</h1>
+    <p>Sign in to check out faster and track your orders.</p>
+
+    <% if (errors._form) { %><div class="form-alert" role="alert"><%- icon('alert') %><span><%= errors._form %></span></div><% } %>
+
+    <form action="/login" method="post" data-login-form data-disable-on-submit novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+      <input type="hidden" name="next" value="<%= next %>">
+      <%- include('../partials/field', { name: 'email', label: 'Email', type: 'email', value: values.email, error: errors.email, autocomplete: 'email', attrs: 'autofocus' }) %>
+      <%- include('../partials/field', { name: 'password', label: 'Password', type: 'password', value: '', error: errors.password, autocomplete: 'current-password', toggle: true }) %>
+      <button class="btn btn-primary btn-lg btn-block mt-3" type="submit">Sign in</button>
+    </form>
+
+    <p class="auth-switch">New to <%= appName %>? <a href="/register<%= next ? '?next=' + encodeURIComponent(next) : '' %>">Create an account</a></p>
+
+    <% if (demoAccounts.length) { %>
+      <div class="demo-accounts">
+        <h2><%- icon('sparkle', 'icon-sm') %> Try a demo account</h2>
+        <% demoAccounts.forEach(function (a) { %>
+          <button type="button" class="demo-account" data-demo-login data-email="<%= a.email %>" data-password="<%= a.password %>">
+            <span><strong><%= a.label %></strong><span><%= a.email %> · <%= a.hint %></span></span>
+            <%- icon('arrow-right', 'icon-sm') %>
+          </button>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>

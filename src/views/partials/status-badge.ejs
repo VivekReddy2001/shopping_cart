@@ -1,0 +1,2 @@
+<% const statusIcons = { PLACED: 'clipboard', PROCESSING: 'box', SHIPPED: 'truck', DELIVERED: 'check-circle', CANCELLED: 'x-circle' }; %>
+<span class="badge badge-<%= statusTone(status) %>"><%- icon(statusIcons[status] || 'info') %> <%= statusLabel(status) %></span>

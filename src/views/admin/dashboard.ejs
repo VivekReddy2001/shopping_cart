@@ -1,0 +1,131 @@
+<% const k = dash.kpis; const c = dash.chart;
+   const delta = (v) => v === null ? '' : `<span class="stat-delta ${v >= 0 ? 'up' : 'down'}">${v >= 0 ? '▲' : '▼'} ${Math.abs(v)}% vs previous 14 days</span>`; %>
+<div class="admin-topbar">
+  <div>
+    <h1>Dashboard</h1>
+    <p>Store performance at a glance · <%= formatDate(new Date()) %></p>
+  </div>
+  <div class="row">
+    <a class="btn" href="/admin/orders"><%- icon('clipboard') %> Manage orders</a>
+    <a class="btn btn-primary" href="/admin/products/new"><%- icon('plus') %> Add product</a>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat">
+    <div class="stat-label"><%- icon('cash') %> Revenue (14 days)</div>
+    <div class="stat-value"><%= formatPrice(k.revenue14) %></div>
+    <%- delta(k.revenueDelta) %>
+  </div>
+  <div class="stat">
+    <div class="stat-label"><%- icon('clipboard') %> Orders (14 days)</div>
+    <div class="stat-value"><%= formatNumber(k.orders14) %></div>
+    <%- delta(k.ordersDelta) %>
+  </div>
+  <div class="stat">
+    <div class="stat-label"><%- icon('tag') %> Average order value</div>
+    <div class="stat-value"><%= formatPrice(k.averageOrderValue) %></div>
+    <span class="stat-delta"><%= formatPrice(k.revenue) %> lifetime · <%= formatNumber(k.orders) %> orders</span>
+  </div>
+  <div class="stat">
+    <div class="stat-label"><%- icon('users') %> Customers</div>
+    <div class="stat-value"><%= formatNumber(k.customers) %></div>
+    <span class="stat-delta"><%= formatNumber(k.newCustomers) %> new · <%= formatNumber(k.products) %> active products</span>
+  </div>
+</div>
+
+<div class="dash-grid">
+  <section class="card">
+    <div class="card-header">
+      <h2>Revenue — last 14 days</h2>
+      <span class="muted small">Excludes cancelled orders</span>
+    </div>
+    <div class="chart-wrap" data-chart>
+      <svg class="chart" viewBox="0 0 <%= c.width %> <%= c.height %>" role="img" aria-label="Column chart of daily revenue for the last 14 days. Peak <%= formatPrice(Math.max(...dash.series.map((s) => s.revenue))) %>.">
+        <% c.ticks.forEach(function (t) { %>
+          <line class="grid-line" x1="<%= c.pad.left %>" x2="<%= c.width - c.pad.right %>" y1="<%= t.y %>" y2="<%= t.y %>"></line>
+          <text class="tick" x="<%= c.pad.left - 10 %>" y="<%= t.y + 4 %>" text-anchor="end"><%= formatCompactPrice(t.value) %></text>
+        <% }) %>
+        <line class="baseline" x1="<%= c.pad.left %>" x2="<%= c.width - c.pad.right %>" y1="<%= c.baseline %>" y2="<%= c.baseline %>"></line>
+        <% c.bars.forEach(function (b) { %>
+          <g class="bar-group" data-bar data-label="<%= formatDate(b.date) %>" data-value="<%= formatPrice(b.revenue) %>" data-orders="<%= b.orders %>" data-x="<%= b.cx %>" data-y="<%= b.y %>">
+            <% if (b.path) { %><path class="bar" d="<%= b.path %>"></path><% } %>
+            <rect class="bar-hit" x="<%= b.hitX %>" y="<%= c.pad.top %>" width="<%= b.hitWidth %>" height="<%= c.innerH %>"></rect>
+            <% if (b.showLabel) { %><text class="tick" x="<%= b.cx %>" y="<%= c.baseline + 18 %>" text-anchor="middle"><%= new Intl.DateTimeFormat(store.locale, { day: 'numeric', month: 'short', timeZone: store.timezone }).format(b.date) %></text><% } %>
+            <% if (b.isPeak) { %><text class="peak-label" x="<%= b.cx %>" y="<%= b.y - 6 %>" text-anchor="middle"><%= formatCompactPrice(b.revenue) %></text><% } %>
+          </g>
+        <% }) %>
+      </svg>
+      <div class="chart-tooltip" data-chart-tooltip hidden></div>
+    </div>
+    <details class="chart-table">
+      <summary>View as table</summary>
+      <div class="table-wrap mt-1">
+        <table class="table">
+          <thead><tr><th scope="col">Date</th><th scope="col" class="num">Orders</th><th scope="col" class="num">Revenue</th></tr></thead>
+          <tbody>
+            <% dash.series.slice().reverse().forEach(function (s) { %>
+              <tr><td><%= formatDate(s.date) %></td><td class="num"><%= s.orders %></td><td class="num"><%= formatPrice(s.revenue) %></td></tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <div class="stack">
+    <section class="card">
+      <div class="card-header"><h2>Orders by status</h2><a class="small" href="/admin/orders">View all</a></div>
+      <div class="card-body">
+        <ul class="status-list">
+          <% Object.entries(dash.statusCounts).forEach(function ([status, count]) { %>
+            <li><a href="/admin/orders?status=<%= status %>"><%- include('../partials/status-badge', { status }) %></a><strong><%= formatNumber(count) %></strong></li>
+          <% }) %>
+        </ul>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-header"><h2>Low stock</h2><a class="small" href="/admin/products?status=low">Restock</a></div>
+      <div class="card-body">
+        <% if (!dash.lowStock.length) { %><p class="muted mb-0">All products are well stocked.</p><% } %>
+        <ul class="mini-list">
+          <% dash.lowStock.forEach(function (p) { %>
+            <li><img src="<%= p.image %>" alt="" width="44" height="44"><a class="name" href="/products/<%= p.slug %>"><%= p.name %></a><span class="<%= p.stock === 0 ? 'zero' : 'low' %> num"><%= p.stock === 0 ? 'Sold out' : p.stock + ' left' %></span></li>
+          <% }) %>
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="dash-grid">
+  <section class="card">
+    <div class="card-header"><h2>Recent orders</h2><a class="small" href="/admin/orders">All orders</a></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th scope="col">Order</th><th scope="col">Customer</th><th scope="col">Status</th><th scope="col" class="num">Total</th></tr></thead>
+        <tbody>
+          <% dash.recentOrders.forEach(function (o) { %>
+            <tr>
+              <td><a class="num" href="/admin/orders/<%= o.orderNumber %>"><%= o.orderNumber %></a><div class="muted small"><%= formatDateTime(o.createdAt) %></div></td>
+              <td><%= o.customer.name %><div class="muted small"><%= o.customer.email %></div></td>
+              <td><%- include('../partials/status-badge', { status: o.status }) %></td>
+              <td class="num"><%= formatPrice(o.amounts.total) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="card">
+    <div class="card-header"><h2>Top products</h2><span class="muted small">By revenue</span></div>
+    <div class="card-body">
+      <% if (!dash.topProducts.length) { %><p class="muted mb-0">No sales yet.</p><% } %>
+      <ul class="mini-list">
+        <% dash.topProducts.forEach(function (p) { %>
+          <li><img src="<%= p.image %>" alt="" width="44" height="44"><span><a class="name" href="/products/<%= p.slug %>"><%= p.name %></a><span class="muted small"><%= pluralize(p.units, 'unit') %> sold</span></span><strong class="num"><%= formatPrice(p.revenue) %></strong></li>
+        <% }) %>
+      </ul>
+    </div>
+  </section>
+</div>

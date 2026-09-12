@@ -1,0 +1,61 @@
+<div class="container page">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol><li><a href="/">Home</a></li><li><span aria-current="page">Account</span></li></ol>
+  </nav>
+  <div class="account-hero">
+    <span class="avatar"><%= initials(user.name) %></span>
+    <div>
+      <h1><%= user.name %></h1>
+      <p class="muted mb-0"><%= user.email %> · Member since <%= formatDate(user.createdAt) %><% if (user.role === 'admin') { %> · <span class="badge badge-primary">Admin</span><% } %></p>
+    </div>
+  </div>
+
+  <% if (user.isDemo) { %>
+    <div class="flash flash-info mb-2"><%- icon('info') %><p>You’re using a shared demo account. You can edit the profile name, but the password can’t be changed.</p></div>
+  <% } %>
+
+  <div class="account-grid">
+    <section class="card">
+      <div class="card-header"><h2>Profile</h2></div>
+      <div class="card-body">
+        <form action="/account" method="post" data-disable-on-submit novalidate>
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+          <%- include('../partials/field', { name: 'name', label: 'Full name', value: values.name, error: profileErrors.name, autocomplete: 'name' }) %>
+          <%- include('../partials/field', { name: 'phone', label: 'Phone number', type: 'tel', value: values.phone, error: profileErrors.phone, autocomplete: 'tel', required: false }) %>
+          <div class="field">
+            <span class="label">Email</span>
+            <input class="input" value="<%= user.email %>" disabled aria-label="Email (cannot be changed)">
+          </div>
+          <button class="btn btn-primary mt-3" type="submit">Save changes</button>
+        </form>
+      </div>
+    </section>
+
+    <div class="stack">
+      <section class="card">
+        <div class="card-header"><h2>Saved address</h2><a class="small" href="/orders">Your orders</a></div>
+        <div class="card-body">
+          <% if (user.address) { const a = user.address; %>
+            <address class="address"><strong><%= a.fullName %></strong><br><%= a.line1 %><% if (a.line2) { %><br><%= a.line2 %><% } %><br><%= a.city %>, <%= a.state %> <%= a.postalCode %><br><%= a.country %> · <%= a.phone %></address>
+            <p class="muted small mt-1 mb-0">Your latest delivery address is saved automatically at checkout.</p>
+          <% } else { %>
+            <p class="muted mb-0">No address yet — it will be saved when you place your first order.</p>
+          <% } %>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header"><h2>Change password</h2></div>
+        <div class="card-body">
+          <form action="/account/password" method="post" data-disable-on-submit novalidate>
+            <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+            <%- include('../partials/field', { name: 'currentPassword', label: 'Current password', type: 'password', value: '', error: passwordErrors.currentPassword, autocomplete: 'current-password', toggle: true }) %>
+            <%- include('../partials/field', { name: 'newPassword', label: 'New password', type: 'password', value: '', error: passwordErrors.newPassword, autocomplete: 'new-password', hint: 'At least 8 characters, with a letter and a number.' }) %>
+            <%- include('../partials/field', { name: 'confirmPassword', label: 'Confirm new password', type: 'password', value: '', error: passwordErrors.confirmPassword, autocomplete: 'new-password' }) %>
+            <button class="btn btn-dark mt-3" type="submit" <%= user.isDemo ? 'disabled' : '' %>>Update password</button>
+          </form>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>

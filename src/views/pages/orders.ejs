@@ -1,0 +1,41 @@
+<div class="container page">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol><li><a href="/">Home</a></li><li><span aria-current="page">Orders</span></li></ol>
+  </nav>
+  <div class="row-between mb-2">
+    <div><h1 class="mb-0">Your orders</h1><p class="muted mb-0"><%= pluralize(orders.total, 'order') %> placed</p></div>
+    <a class="btn" href="/products">Continue shopping</a>
+  </div>
+
+  <% if (!orders.items.length) { %>
+    <div class="empty-state">
+      <span class="icon-wrap"><%- icon('box') %></span>
+      <h2>No orders yet</h2>
+      <p>When you place an order, you’ll be able to track it and download its invoice here.</p>
+      <a class="btn btn-primary mt-2" href="/products">Start shopping</a>
+    </div>
+  <% } else { %>
+    <div class="order-list">
+      <% orders.items.forEach(function (o) { %>
+        <a class="order-card" href="/orders/<%= o.orderNumber %>">
+          <div>
+            <div class="order-card-head">
+              <strong class="num"><%= o.orderNumber %></strong>
+              <%- include('../partials/status-badge', { status: o.status }) %>
+            </div>
+            <div class="order-card-meta">Placed <%= formatDate(o.createdAt) %> · <%= pluralize(o.items.reduce((s, i) => s + i.quantity, 0), 'item') %> · <%= PAYMENT_METHODS[o.payment.method] %></div>
+            <div class="order-thumbs" aria-hidden="true">
+              <% o.items.slice(0, 4).forEach(function (i) { %><img src="<%= i.image %>" alt="" width="48" height="48" loading="lazy"><% }) %>
+              <% if (o.items.length > 4) { %><span>+<%= o.items.length - 4 %></span><% } %>
+            </div>
+          </div>
+          <div class="order-card-total">
+            <strong class="num"><%= formatPrice(o.amounts.total) %></strong>
+            <span class="link-arrow small">View details <%- icon('chevron-right', 'icon-sm') %></span>
+          </div>
+        </a>
+      <% }) %>
+    </div>
+    <%- include('../partials/pagination', { page: orders.page, pages: orders.pages, basePath: '/orders', baseQuery: {} }) %>
+  <% } %>
+</div>

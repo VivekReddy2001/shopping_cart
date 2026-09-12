@@ -1,0 +1,9 @@
+{
+  "name": "Kartly",
+  "short_name": "Kartly",
+  "icons": [{ "src": "/img/favicon.svg", "sizes": "any", "type": "image/svg+xml" }],
+  "theme_color": "#6D28D9",
+  "background_color": "#F7F7FB",
+  "display": "standalone",
+  "start_url": "/"
+}

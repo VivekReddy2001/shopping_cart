@@ -1,0 +1,57 @@
+<div class="admin-topbar">
+  <div><h1>Products</h1><p><%= pluralize(result.total, 'product') %> · manage catalogue, prices and stock</p></div>
+  <a class="btn btn-primary" href="/admin/products/new"><%- icon('plus') %> Add product</a>
+</div>
+
+<div class="tabs" role="navigation" aria-label="Product status">
+  <% [['active', 'Active'], ['low', 'Low stock'], ['archived', 'Archived'], ['all', 'All']].forEach(function ([value, label]) { %>
+    <a class="tab" href="/admin/products<%= buildQuery({ status: value === 'active' ? null : value, q: filters.q, category: filters.category }) %>" <% if (filters.status === value) { %>aria-current="page"<% } %>><%= label %></a>
+  <% }) %>
+</div>
+
+<form class="admin-filters" method="get" action="/admin/products">
+  <% if (filters.status !== 'active') { %><input type="hidden" name="status" value="<%= filters.status %>"><% } %>
+  <label class="sr-only" for="product-search">Search products</label>
+  <input class="input" id="product-search" type="search" name="q" value="<%= filters.q %>" placeholder="Search by product name…">
+  <label class="sr-only" for="product-category">Category</label>
+  <select class="select" id="product-category" name="category" data-autosubmit>
+    <option value="">All categories</option>
+    <% taxonomy.categories.forEach(function (c) { %><option value="<%= c.slug %>" <%= filters.category === c.slug ? 'selected' : '' %>><%= c.name %></option><% }) %>
+  </select>
+  <button class="btn" type="submit"><%- icon('search') %> Search</button>
+</form>
+
+<section class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th scope="col">Product</th><th scope="col">Category</th><th scope="col" class="num">Price</th><th scope="col" class="num">Stock</th><th scope="col" class="num">Sold</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Actions</span></th></tr>
+      </thead>
+      <tbody>
+        <% if (!result.items.length) { %><tr><td colspan="7" class="muted">No products match these filters.</td></tr><% } %>
+        <% result.items.forEach(function (p) { %>
+          <tr>
+            <td><div class="cell-product"><img class="thumb" src="<%= p.image %>" alt="" width="44" height="44" loading="lazy"><div><a href="/admin/products/<%= p._id %>/edit"><%= p.name %></a><div class="muted small"><%= p.brand ? p.brand.name : '' %></div></div></div></td>
+            <td><%= p.category ? p.category.name : '—' %></td>
+            <td class="num"><%= formatPrice(p.price) %><% if (p.mrp > p.price) { %><div class="muted small"><s><%= formatPrice(p.mrp) %></s></div><% } %></td>
+            <td class="num <%= p.stock === 0 ? 'zero' : p.stock <= store.lowStockThreshold ? 'low' : '' %>"><%= p.stock %></td>
+            <td class="num"><%= formatNumber(p.soldCount) %></td>
+            <td><% if (p.isActive) { %><span class="badge badge-success">Active</span><% } else { %><span class="badge badge-neutral">Archived</span><% } %><% if (p.featured) { %> <span class="badge badge-primary">Featured</span><% } %></td>
+            <td>
+              <div class="actions">
+                <a class="btn btn-sm btn-ghost" href="/products/<%= p.slug %>" title="View in store" aria-label="View <%= p.name %> in store"><%- icon('eye', 'icon-sm') %></a>
+                <a class="btn btn-sm" href="/admin/products/<%= p._id %>/edit"><%- icon('edit', 'icon-sm') %> Edit</a>
+                <form action="/admin/products/<%= p._id %>/archive" method="post" <% if (p.isActive) { %>data-confirm="“<%= p.name %>” will be hidden from the store. Past orders keep their history." data-confirm-title="Archive this product?" data-confirm-ok="Archive"<% } %>>
+                  <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+                  <input type="hidden" name="action" value="<%= p.isActive ? 'archive' : 'restore' %>">
+                  <button class="btn btn-sm <%= p.isActive ? 'btn-danger' : 'btn-soft' %>" type="submit"><%- icon(p.isActive ? 'archive' : 'restore', 'icon-sm') %> <%= p.isActive ? 'Archive' : 'Restore' %></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/pagination', { page: result.page, pages: result.pages, basePath: '/admin/products', baseQuery: { status: filters.status === 'active' ? null : filters.status, q: filters.q, category: filters.category } }) %>

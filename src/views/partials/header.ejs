@@ -1,0 +1,60 @@
+<header class="site-header">
+  <div class="container header-bar">
+    <a class="brand" href="/" aria-label="<%= appName %> home"><img src="/img/logo-mark.svg" alt="" width="36" height="36"><%= appName %></a>
+
+    <form class="search" action="/products" method="get" role="search" data-search-form>
+      <%- icon('search') %>
+      <label for="site-search" class="sr-only">Search products</label>
+      <input id="site-search" class="input" type="search" name="q" value="<%= searchQuery %>"
+             placeholder="Search phones, laptops, sofas…" autocomplete="off" maxlength="100" data-search-input>
+      <div class="search-actions">
+        <button type="button" class="icon-btn voice-btn" data-voice-search aria-pressed="false"
+                aria-label="Search by voice" title="Search by voice"><%- icon('mic') %></button>
+        <button type="submit" class="icon-btn search-submit" aria-label="Search"><%- icon('arrow-right') %></button>
+      </div>
+    </form>
+
+    <nav class="header-actions" aria-label="Account and cart">
+      <% if (currentUser) { %>
+        <a class="header-link" href="/orders"><%- icon('box') %><span class="label-text">Orders</span></a>
+        <details class="menu" data-menu>
+          <summary class="header-link" aria-label="Account menu">
+            <span class="avatar"><%= initials(currentUser.name) %></span>
+            <span class="label-text"><%= currentUser.name.split(' ')[0] %></span>
+            <%- icon('chevron-down', 'icon-sm') %>
+          </summary>
+          <div class="menu-panel">
+            <div class="menu-head"><strong><%= currentUser.name %></strong><span><%= currentUser.email %></span></div>
+            <% if (currentUser.role === 'admin') { %>
+              <a class="menu-item" href="/admin"><%- icon('chart') %> Admin dashboard</a>
+            <% } %>
+            <a class="menu-item" href="/account"><%- icon('user') %> My account</a>
+            <a class="menu-item" href="/orders"><%- icon('box') %> My orders</a>
+            <form action="/logout" method="post">
+              <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+              <button class="menu-item" type="submit"><%- icon('logout') %> Sign out</button>
+            </form>
+          </div>
+        </details>
+      <% } else { %>
+        <a class="header-link" href="/login"><%- icon('user') %><span class="label-text">Sign in</span></a>
+      <% } %>
+      <a class="header-link cart-link" href="/cart" data-cart-link aria-label="Cart, <%= cartCount %> items">
+        <span class="cart-icon"><%- icon('cart') %><span class="cart-badge" data-cart-count data-count="<%= cartCount %>"><%= cartCount %></span></span>
+        <span class="label-text">Cart</span>
+      </a>
+    </nav>
+  </div>
+
+  <nav class="category-nav" aria-label="Categories">
+    <div class="container">
+      <ul>
+        <li><a href="/products" <% if (currentPath === '/products' && !activeCategory) { %>aria-current="page"<% } %>>All products</a></li>
+        <% navCategories.forEach(function (c) { %>
+          <li><a href="/products?category=<%= c.slug %>" <% if (activeCategory === c.slug) { %>aria-current="page"<% } %>><%= c.name %></a></li>
+        <% }) %>
+        <li><a href="/products?sort=discount">Deals</a></li>
+      </ul>
+    </div>
+  </nav>
+</header>

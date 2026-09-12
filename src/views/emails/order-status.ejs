@@ -1,0 +1,13 @@
+<%- include('_top') %>
+<h1 style="margin:0 0 8px;font-size:22px;">Order <%= statusLabel(order.status).toLowerCase() %></h1>
+<p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:#374151;">
+  Hi <%= order.customer.name.split(' ')[0] %>, your order <strong><%= order.orderNumber %></strong> is now
+  <strong><%= statusLabel(order.status).toLowerCase() %></strong>. <%= STATUS_META[order.status].description %>
+</p>
+<% if (order.status === 'CANCELLED' && order.payment.status === 'REFUNDED') { %>
+<p style="margin:0 0 16px;font-size:14px;color:#374151;">Your payment of <%= formatPrice(order.amounts.total) %> has been refunded.</p>
+<% } %>
+<p style="margin:24px 0 0;">
+  <a href="<%= orderUrl %>" style="background:#6d28d9;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:10px;font-weight:600;display:inline-block;">View order</a>
+</p>
+<%- include('_bottom') %>

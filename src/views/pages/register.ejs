@@ -1,0 +1,21 @@
+<div class="container auth-page">
+  <div class="auth-card">
+    <a class="brand" href="/"><img src="/img/logo-mark.svg" alt="" width="36" height="36"><%= appName %></a>
+    <h1>Create your account</h1>
+    <p>It takes less than a minute. Your cart comes with you.</p>
+
+    <% if (errors._form) { %><div class="form-alert" role="alert"><%- icon('alert') %><span><%= errors._form %></span></div><% } %>
+
+    <form action="/register" method="post" data-disable-on-submit novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+      <input type="hidden" name="next" value="<%= next %>">
+      <%- include('../partials/field', { name: 'name', label: 'Full name', value: values.name, error: errors.name, autocomplete: 'name', attrs: 'autofocus maxlength="60"' }) %>
+      <%- include('../partials/field', { name: 'email', label: 'Email', type: 'email', value: values.email, error: errors.email, autocomplete: 'email' }) %>
+      <%- include('../partials/field', { name: 'password', label: 'Password', type: 'password', value: '', error: errors.password, autocomplete: 'new-password', toggle: true, hint: 'At least 8 characters, with a letter and a number.' }) %>
+      <%- include('../partials/field', { name: 'confirmPassword', label: 'Confirm password', type: 'password', value: '', error: errors.confirmPassword, autocomplete: 'new-password' }) %>
+      <button class="btn btn-primary btn-lg btn-block mt-3" type="submit">Create account</button>
+    </form>
+
+    <p class="auth-switch">Already have an account? <a href="/login<%= next ? '?next=' + encodeURIComponent(next) : '' %>">Sign in</a></p>
+  </div>
+</div>

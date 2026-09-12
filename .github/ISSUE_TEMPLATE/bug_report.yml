@@ -1,0 +1,45 @@
+name: Bug report
+description: Something in the store or admin panel does not work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Please do not report security vulnerabilities here — see [SECURITY.md](../blob/main/SECURITY.md).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you expected, and what you got instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to /products?category=mobiles
+        2. Add the last unit of a product to the cart
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      placeholder: v22.11.0
+  - type: dropdown
+    id: how
+    attributes:
+      label: How are you running it?
+      options:
+        - npm run dev (in-memory MongoDB)
+        - npm start with a local MongoDB
+        - Docker / docker compose
+        - A deployed instance
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or console output
+      render: shell

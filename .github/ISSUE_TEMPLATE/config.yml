@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/VivekReddy2001/shopping_cart/security/advisories/new
+    about: Report privately through a GitHub security advisory instead of a public issue.
+  - name: Architecture and design notes
+    url: https://github.com/VivekReddy2001/shopping_cart/blob/main/docs/ARCHITECTURE.md
+    about: How the project is put together, with HLD and LLD diagrams.

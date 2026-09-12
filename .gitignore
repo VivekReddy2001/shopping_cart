@@ -1,2 +1,20 @@
-node_modules.DS_Store
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Logs & coverage
+logs/
+*.log
+npm-debug.log*
+coverage/
+
+# OS / editor
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

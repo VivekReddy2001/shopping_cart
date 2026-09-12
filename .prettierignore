@@ -1,0 +1,9 @@
+node_modules
+coverage
+public/images
+public/fonts
+package-lock.json
+*.ejs
+
+render.yaml
+*.yml

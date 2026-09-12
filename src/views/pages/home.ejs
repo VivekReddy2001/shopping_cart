@@ -1,0 +1,100 @@
+<div class="container">
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-inner">
+      <div>
+        <% const topDeal = Math.max(0, ...deals.map((d) => d.discountPercent)); %>
+        <span class="hero-eyebrow"><%- icon('sparkle', 'icon-sm') %> <%= topDeal > 0 ? `Up to ${topDeal}% off on today’s deals` : 'Fresh arrivals every week' %></span>
+        <h1 id="hero-title">Everything you need, <span>one cart away.</span></h1>
+        <p class="lead">Phones, laptops, home appliances, furniture and fashion from brands you love — with instant search, secure checkout and live order tracking.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-lg" href="/products">Start shopping <%- icon('arrow-right') %></a>
+          <a class="btn btn-lg" href="/products?sort=discount">Today’s deals</a>
+        </div>
+        <p class="hero-voice"><%- icon('mic', 'icon-sm') %> Try voice search: <kbd>“laptops under 60000”</kbd></p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <% hero.slice(0, 4).forEach(function (p, i) { %>
+          <a class="hero-card c<%= i + 1 %>" href="/products/<%= p.slug %>" tabindex="-1">
+            <img src="<%= p.image %>" alt="" width="400" height="400">
+            <% if (i < 3) { %><span class="hero-price"><%= formatPrice(p.price) %></span><% } %>
+          </a>
+        <% }) %>
+      </div>
+    </div>
+  </section>
+
+  <div class="value-props">
+    <div class="value-prop"><span class="icon-wrap"><%- icon('truck') %></span><div><strong>Free delivery</strong><span>On orders over <%= formatPrice(store.freeShippingThreshold) %></span></div></div>
+    <div class="value-prop"><span class="icon-wrap"><%- icon('shield') %></span><div><strong>Secure checkout</strong><span>Pay online or cash on delivery</span></div></div>
+    <div class="value-prop"><span class="icon-wrap"><%- icon('clock') %></span><div><strong>Live order tracking</strong><span>From placed to delivered</span></div></div>
+    <div class="value-prop"><span class="icon-wrap"><%- icon('mic') %></span><div><strong>Voice search</strong><span>Just say what you’re looking for</span></div></div>
+  </div>
+
+  <section class="section" aria-labelledby="categories-title">
+    <div class="section-head">
+      <div><h2 id="categories-title">Shop by category</h2><p>Find exactly what you need across <%= categories.length %> departments.</p></div>
+      <a class="link-arrow" href="/products">Browse all <%- icon('arrow-right', 'icon-sm') %></a>
+    </div>
+    <div class="category-grid">
+      <% categories.forEach(function (c) { %>
+        <a class="category-tile" href="/products?category=<%= c.slug %>">
+          <img src="<%= c.image %>" alt="" loading="lazy" width="96" height="96">
+          <strong><%= c.name %></strong>
+        </a>
+      <% }) %>
+    </div>
+  </section>
+
+  <% if (deals.length) { %>
+  <section class="section" aria-labelledby="deals-title">
+    <div class="section-head">
+      <div><h2 id="deals-title">Today’s best deals</h2><p>The biggest discounts in the store right now.</p></div>
+      <a class="link-arrow" href="/products?sort=discount">See all deals <%- icon('arrow-right', 'icon-sm') %></a>
+    </div>
+    <div class="product-grid">
+      <% deals.forEach(function (p) { %><%- include('../partials/product-card', { product: p }) %><% }) %>
+    </div>
+  </section>
+  <% } %>
+
+  <section class="section">
+    <div class="promo">
+      <div>
+        <h2>Checkout in under a minute</h2>
+        <p>Save your address once, pay online or on delivery, download a GST invoice and follow every order from “placed” to “delivered”.</p>
+      </div>
+      <a class="btn btn-lg" href="/products?sort=rating">Explore the store <%- icon('arrow-right') %></a>
+    </div>
+  </section>
+
+  <% if (bestSellers.length) { %>
+  <section class="section" aria-labelledby="best-title">
+    <div class="section-head">
+      <div><h2 id="best-title">Best sellers</h2><p>What other shoppers are buying.</p></div>
+      <a class="link-arrow" href="/products">Shop all <%- icon('arrow-right', 'icon-sm') %></a>
+    </div>
+    <div class="product-grid">
+      <% bestSellers.forEach(function (p) { %><%- include('../partials/product-card', { product: p }) %><% }) %>
+    </div>
+  </section>
+  <% } %>
+
+  <% if (newArrivals.length) { %>
+  <section class="section" aria-labelledby="new-title">
+    <div class="section-head">
+      <div><h2 id="new-title">New arrivals</h2><p>Fresh additions to the catalogue.</p></div>
+      <a class="link-arrow" href="/products?sort=newest">See what’s new <%- icon('arrow-right', 'icon-sm') %></a>
+    </div>
+    <div class="product-grid">
+      <% newArrivals.forEach(function (p) { %><%- include('../partials/product-card', { product: p }) %><% }) %>
+    </div>
+  </section>
+  <% } %>
+
+  <section class="section" aria-labelledby="brands-title">
+    <div class="section-head"><div><h2 id="brands-title">Popular brands</h2></div></div>
+    <div class="brand-strip">
+      <% brands.forEach(function (b) { %><a class="brand-chip" href="/products?brand=<%= b.slug %>"><%= b.name %></a><% }) %>
+    </div>
+  </section>
+</div>

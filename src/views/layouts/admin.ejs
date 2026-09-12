@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title %> · <%= appName %> Admin</title>
+  <meta name="robots" content="noindex">
+  <meta name="csrf-token" content="<%= csrfToken() %>">
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/poppins-regular.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="/css/app.css?v=<%= assetVersion %>">
+  <script src="/js/app.js?v=<%= assetVersion %>" defer></script>
+  <% scripts.forEach(function (src) { %><script src="<%= src %>?v=<%= assetVersion %>" defer></script>
+  <% }) %>
+</head>
+<body class="admin-body" data-authenticated="true">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="admin-shell" data-admin-shell>
+    <aside class="admin-sidebar" aria-label="Admin navigation">
+      <a class="brand" href="/admin"><img src="/img/logo-mark.svg" alt="" width="32" height="32"> Kartly <small>ADMIN</small></a>
+      <% const adminLinks = [
+        { href: '/admin', label: 'Dashboard', icon: 'chart' },
+        { href: '/admin/orders', label: 'Orders', icon: 'clipboard' },
+        { href: '/admin/products', label: 'Products', icon: 'box' },
+        { href: '/admin/catalog', label: 'Categories & brands', icon: 'grid' },
+        { href: '/admin/customers', label: 'Customers', icon: 'users' },
+      ];
+      const here = currentPath.replace(/\/+$/, '') || '/admin'; %>
+      <nav>
+        <ul class="admin-nav">
+          <% adminLinks.forEach(function (l) {
+            const active = l.href === '/admin' ? here === '/admin' : here.startsWith(l.href); %>
+            <li><a href="<%= l.href %>" <% if (active) { %>aria-current="page"<% } %>><%- icon(l.icon) %> <%= l.label %></a></li>
+          <% }) %>
+        </ul>
+      </nav>
+      <div class="sidebar-foot">
+        <a href="/"><%- icon('store') %> View store</a>
+        <div class="admin-user">
+          <span class="avatar"><%= initials(currentUser.name) %></span>
+          <div><strong><%= currentUser.name %></strong><span><%= currentUser.readOnly ? 'Read-only admin' : 'Administrator' %></span></div>
+        </div>
+        <form action="/logout" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+          <button type="submit"><%- icon('logout') %> Sign out</button>
+        </form>
+      </div>
+    </aside>
+    <main class="admin-main" id="main" tabindex="-1">
+      <button type="button" class="icon-btn admin-menu-toggle" data-admin-menu aria-label="Open navigation"><%- icon('menu') %></button>
+      <% if (currentUser.readOnly) { %>
+        <div class="readonly-banner" role="note"><%- icon('lock') %> You're signed in as the read-only demo admin. You can explore everything, but changes are disabled.</div>
+      <% } %>
+      <% if (flashMessages.length) { %><%- include('../partials/flash') %><div class="mt-2"></div><% } %>
+      <%- body %>
+    </main>
+  </div>
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+  <%- include('../partials/confirm-dialog') %>
+</body>
+</html>

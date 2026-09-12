@@ -1,0 +1,12 @@
+<div class="container page">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/products">Shop</a></li>
+      <% if (result.category) { %><li><span aria-current="page"><%= result.category.name %></span></li><% } %>
+    </ol>
+  </nav>
+  <div id="shop-root" data-shop-root>
+    <%- include('../partials/shop-results') %>
+  </div>
+</div>

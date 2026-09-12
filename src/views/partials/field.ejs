@@ -1,0 +1,29 @@
+<%#
+  Reusable form field.
+  locals: name, label, type?, value?, error?, autocomplete?, required?, hint?, attrs?, toggle?
+%>
+<%
+  const fid = 'f-' + name;
+  const fError = typeof error !== 'undefined' ? error : '';
+  const fHint = typeof hint !== 'undefined' ? hint : '';
+  const fToggle = typeof toggle !== 'undefined' && toggle;
+  const fRequired = typeof required === 'undefined' || required;
+  const fValue = typeof value !== 'undefined' && value !== null ? value : '';
+  const describedBy = [fError ? fid + '-error' : '', fHint ? fid + '-hint' : ''].filter(Boolean).join(' ');
+%>
+<div class="field">
+  <label class="label" for="<%= fid %>"><%= label %></label>
+  <div class="<%= fToggle ? 'input-group' : '' %>">
+    <input class="input" id="<%= fid %>" name="<%= name %>" type="<%= typeof type !== 'undefined' ? type : 'text' %>" value="<%= fValue %>"
+      <% if (typeof autocomplete !== 'undefined') { %>autocomplete="<%= autocomplete %>"<% } %>
+      <% if (fRequired) { %>required<% } %>
+      <% if (fError) { %>aria-invalid="true"<% } %>
+      <% if (describedBy) { %>aria-describedby="<%= describedBy %>"<% } %>
+      <%- typeof attrs !== 'undefined' ? attrs : '' %>>
+    <% if (fToggle) { %>
+      <button type="button" class="icon-btn" data-toggle-password="<%= fid %>" aria-label="Show password" aria-pressed="false"><%- icon('eye') %></button>
+    <% } %>
+  </div>
+  <% if (fHint) { %><span class="field-hint" id="<%= fid %>-hint"><%= fHint %></span><% } %>
+  <% if (fError) { %><span class="field-error" id="<%= fid %>-error"><%- icon('alert', 'icon-sm') %><%= fError %></span><% } %>
+</div>

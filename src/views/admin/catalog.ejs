@@ -1,0 +1,59 @@
+<div class="admin-topbar">
+  <div><h1>Categories &amp; brands</h1><p>Organise the catalogue used by filters, navigation and search.</p></div>
+</div>
+<div class="dash-grid">
+  <section class="card">
+    <div class="card-header"><h2>Categories (<%= categories.length %>)</h2></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th scope="col">Category</th><th scope="col">Slug</th><th scope="col" class="num">Active products</th></tr></thead>
+        <tbody>
+          <% categories.forEach(function (c) { %>
+            <tr><td><div class="cell-product"><% if (c.image) { %><img class="thumb" src="<%= c.image %>" alt="" width="44" height="44"><% } %><a href="/products?category=<%= c.slug %>"><%= c.name %></a></div></td><td class="muted num"><%= c.slug %></td><td class="num"><%= c.productCount %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <form action="/admin/categories" method="post" class="form-grid" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <div class="field">
+          <label class="label" for="c-name">New category</label>
+          <input class="input" id="c-name" name="name" value="<%= values.name && !values.brandForm ? values.name : '' %>" maxlength="60" required <%= categoryErrors.name ? 'aria-invalid=true' : '' %>>
+          <% if (categoryErrors.name) { %><span class="field-error"><%- icon('alert', 'icon-sm') %><%= categoryErrors.name %></span><% } %>
+        </div>
+        <div class="field">
+          <label class="label" for="c-desc">Description <span class="optional">(optional)</span></label>
+          <input class="input" id="c-desc" name="description" maxlength="240" value="<%= values.description || '' %>">
+        </div>
+        <div class="span-2"><button class="btn btn-primary" type="submit"><%- icon('plus') %> Add category</button></div>
+      </form>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h2>Brands (<%= brands.length %>)</h2></div>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th scope="col">Brand</th><th scope="col" class="num">Active products</th></tr></thead>
+        <tbody>
+          <% brands.forEach(function (b) { %>
+            <tr><td><a href="/products?brand=<%= b.slug %>"><%= b.name %></a></td><td class="num"><%= b.productCount %></td></tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <form action="/admin/brands" method="post" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <input type="hidden" name="brandForm" value="1">
+        <div class="field">
+          <label class="label" for="b-name">New brand</label>
+          <input class="input" id="b-name" name="name" value="<%= values.brandForm ? values.name : '' %>" maxlength="60" required <%= brandErrors.name ? 'aria-invalid=true' : '' %>>
+          <% if (brandErrors.name) { %><span class="field-error"><%- icon('alert', 'icon-sm') %><%= brandErrors.name %></span><% } %>
+        </div>
+        <button class="btn btn-primary mt-2" type="submit"><%- icon('plus') %> Add brand</button>
+      </form>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,66 @@
+<% const a = order.shippingAddress; %>
+<div class="invoice-toolbar">
+  <a class="btn btn-ghost" href="/orders/<%= order.orderNumber %>"><%- icon('arrow-left') %> Back to order</a>
+  <div class="row">
+    <a class="btn" href="/orders/<%= order.orderNumber %>/invoice.pdf"><%- icon('download') %> Download PDF</a>
+    <button class="btn btn-primary" type="button" data-print><%- icon('printer') %> Print</button>
+  </div>
+</div>
+<article class="invoice">
+  <header class="invoice-head">
+    <div>
+      <a class="brand" href="/"><img src="/img/logo-mark.svg" alt="" width="36" height="36"><%= appName %></a>
+      <p class="muted small mt-1 mb-0">Everything you need, one cart away</p>
+    </div>
+    <div>
+      <h1>INVOICE</h1>
+      <dl class="invoice-meta mt-1">
+        <dt>Invoice no.</dt><dd class="num"><%= order.invoiceNumber %></dd>
+        <dt>Invoice date</dt><dd><%= formatDate(order.createdAt) %></dd>
+        <dt>Order no.</dt><dd class="num"><%= order.orderNumber %></dd>
+      </dl>
+    </div>
+  </header>
+
+  <section class="invoice-parties">
+    <div><h2>Sold by</h2><address class="address"><strong><%= appName %> (demo store)</strong><br>Portfolio project — not a registered business<br><%= store.supportEmail %></address></div>
+    <div><h2>Bill to</h2><address class="address"><strong><%= order.customer.name %></strong><br><%= order.customer.email %></address></div>
+    <div><h2>Ship to</h2><address class="address"><strong><%= a.fullName %></strong><br><%= a.line1 %><% if (a.line2) { %><br><%= a.line2 %><% } %><br><%= a.city %>, <%= a.state %> <%= a.postalCode %><br><%= a.country %> · <%= a.phone %></address></div>
+  </section>
+
+  <table class="invoice-table">
+    <thead><tr><th scope="col">#</th><th scope="col">Item</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Unit price</th><th scope="col" class="num">Amount</th></tr></thead>
+    <tbody>
+      <% order.items.forEach(function (i, idx) { %>
+        <tr>
+          <td class="muted"><%= idx + 1 %></td>
+          <td><strong><%= i.name %></strong><div class="muted small"><%= [i.brand, i.category].filter(Boolean).join(' · ') %></div></td>
+          <td class="num"><%= i.quantity %></td>
+          <td class="num"><%= formatPrice(i.price) %></td>
+          <td class="num"><strong><%= formatPrice(i.lineTotal) %></strong></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+
+  <div class="invoice-bottom">
+    <div>
+      <h2 class="small muted">PAYMENT</h2>
+      <dl class="kv">
+        <div><dt>Method</dt><dd><%= PAYMENT_METHODS[order.payment.method] %></dd></div>
+        <div><dt>Status</dt><dd><%= PAYMENT_STATUS_META[order.payment.status].label %></dd></div>
+        <% if (order.payment.transactionId) { %><div><dt>Transaction</dt><dd class="num"><%= order.payment.transactionId %></dd></div><% } %>
+        <div><dt>Order status</dt><dd><%= statusLabel(order.status) %></dd></div>
+      </dl>
+    </div>
+    <div>
+      <div class="summary-rows">
+        <div class="summary-row"><span>Subtotal</span><span class="num"><%= formatPrice(order.amounts.subtotal) %></span></div>
+        <div class="summary-row"><span>Shipping</span><span class="num"><%= order.amounts.shipping ? formatPrice(order.amounts.shipping) : 'Free' %></span></div>
+        <div class="summary-row"><span>Includes GST (<%= Math.round(store.taxRate * 100) %>%)</span><span class="num"><%= formatPrice(order.amounts.tax) %></span></div>
+      </div>
+      <div class="invoice-total"><span>Total</span><span class="num"><%= formatPrice(order.amounts.total) %></span></div>
+    </div>
+  </div>
+  <p class="invoice-foot">Thank you for shopping with <%= appName %>! This is a computer-generated invoice from a demo store and needs no signature.</p>
+</article>

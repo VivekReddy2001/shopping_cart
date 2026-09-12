@@ -1,0 +1,38 @@
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <a class="brand" href="/"><img src="/img/logo-mark.svg" alt="" width="36" height="36"><%= appName %></a>
+      <p>Kartly is a full-stack e-commerce store built with Node.js, Express, MongoDB and EJS — designed and developed by Vivek Reddy.</p>
+    </div>
+    <div>
+      <h2>Shop</h2>
+      <ul>
+        <li><a href="/products">All products</a></li>
+        <% navCategories.slice(0, 5).forEach(function (c) { %>
+          <li><a href="/products?category=<%= c.slug %>"><%= c.name %></a></li>
+        <% }) %>
+      </ul>
+    </div>
+    <div>
+      <h2>Your account</h2>
+      <ul>
+        <li><a href="/cart">Cart</a></li>
+        <li><a href="/orders">Orders &amp; tracking</a></li>
+        <li><a href="/account">Profile &amp; security</a></li>
+        <% if (!currentUser) { %><li><a href="/register">Create an account</a></li><% } %>
+      </ul>
+    </div>
+    <div>
+      <h2>Project</h2>
+      <ul>
+        <li><a href="https://github.com/VivekReddy2001/shopping_cart" rel="noopener">Source code</a></li>
+        <li><a href="https://github.com/VivekReddy2001/shopping_cart#rest-api" rel="noopener">REST API reference</a></li>
+        <li><a href="/health">System status</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>© <%= year %> <%= appName %> · Built by Vivek Reddy</span>
+    <span>Demo store — no real payments are taken and no orders are shipped.</span>
+  </div>
+</footer>

@@ -1,0 +1,10 @@
+<div class="flash-stack">
+  <% const flashIcons = { success: 'check-circle', error: 'x-circle', warning: 'alert', info: 'info' }; %>
+  <% flashMessages.forEach(function (m) { %>
+    <div class="flash flash-<%= m.type %>" role="<%= m.type === 'error' ? 'alert' : 'status' %>" data-flash>
+      <%- icon(flashIcons[m.type] || 'info') %>
+      <p><%= m.message %></p>
+      <button type="button" class="icon-btn" data-dismiss aria-label="Dismiss message"><%- icon('x', 'icon-sm') %></button>
+    </div>
+  <% }) %>
+</div>

@@ -1,0 +1,19 @@
+<%
+  const reached = new Map(order.statusHistory.map((e) => [e.status, e.at]));
+  const stepIcons = { PLACED: 'clipboard', PROCESSING: 'box', SHIPPED: 'truck', DELIVERED: 'home' };
+  const currentIndex = FULFILMENT_STEPS.indexOf(order.status);
+%>
+<% if (order.status === 'CANCELLED') { %>
+  <div class="cancelled-note"><%- icon('x-circle', 'icon-lg') %><div><strong>This order was cancelled</strong><br><span class="small">on <%= formatDateTime(reached.get('CANCELLED')) %><%= order.payment.status === 'REFUNDED' ? ' · your payment has been refunded' : '' %>.</span></div></div>
+<% } else { %>
+  <ol class="timeline" aria-label="Order progress">
+    <% FULFILMENT_STEPS.forEach(function (step, i) {
+      const state = i < currentIndex || order.status === 'DELIVERED' ? 'done' : i === currentIndex ? 'current' : ''; %>
+      <li class="<%= state %>" <% if (state === 'current') { %>aria-current="step"<% } %>>
+        <span class="dot"><%- icon(state === 'done' ? 'check' : stepIcons[step]) %></span>
+        <span class="step-label"><%= statusLabel(step) %></span>
+        <span class="step-date"><%= reached.has(step) ? formatDate(reached.get(step)) : (state ? '' : 'Pending') %></span>
+      </li>
+    <% }) %>
+  </ol>
+<% } %>

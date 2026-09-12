@@ -1,0 +1,131 @@
+<%
+  const base = {
+    q: query.q, category: query.category, brand: query.brand,
+    minPrice: query.minPrice, maxPrice: query.maxPrice,
+    inStock: query.inStock ? 1 : null, sort: query.sort === 'relevance' ? null : query.sort,
+  };
+  const chips = [];
+  if (query.q) chips.push({ label: `“${query.q}”`, href: '/products' + buildQuery(base, { q: null, page: null }) });
+  if (result.category) chips.push({ label: result.category.name, href: '/products' + buildQuery(base, { category: null, page: null }) });
+  result.selectedBrands.forEach(function (b) {
+    chips.push({ label: b.name, href: '/products' + buildQuery(base, { brand: query.brand.filter((s) => s !== b.slug), page: null }) });
+  });
+  if (query.minPrice !== undefined) chips.push({ label: `Min ${formatPrice(query.minPrice)}`, href: '/products' + buildQuery(base, { minPrice: null, page: null }) });
+  if (query.maxPrice !== undefined) chips.push({ label: `Max ${formatPrice(query.maxPrice)}`, href: '/products' + buildQuery(base, { maxPrice: null, page: null }) });
+  if (query.inStock) chips.push({ label: 'In stock', href: '/products' + buildQuery(base, { inStock: null, page: null }) });
+  const intentPrice = query.q && query.minPrice === undefined && query.maxPrice === undefined && (result.intent.minPrice !== undefined || result.intent.maxPrice !== undefined);
+%>
+<div data-page-title="<%= title %> · <%= appName %>" hidden></div>
+<div class="shop-head">
+  <div>
+    <h1><%= heading %></h1>
+    <p><%= pluralize(result.total, 'product') %><%= result.category && result.category.description ? ' · ' + result.category.description : '' %></p>
+  </div>
+</div>
+
+<div class="shop-layout">
+  <form id="filters-form" action="/products" method="get" data-filters>
+    <% if (query.q) { %><input type="hidden" name="q" value="<%= query.q %>"><% } %>
+    <details class="filters" open data-filters-panel>
+      <summary><span class="row"><%- icon('filter') %> Filters<% if (chips.length) { %> <span class="badge badge-primary"><%= chips.length %></span><% } %></span><%- icon('chevron-down') %></summary>
+      <div class="filters-body">
+        <div class="filter-group">
+          <h3>Category</h3>
+          <ul class="facet-list">
+            <li>
+              <label class="facet">
+                <span class="facet-label"><input type="radio" name="category" value="" <%= !query.category ? 'checked' : '' %>> All categories</span>
+              </label>
+            </li>
+            <% result.facets.categories.forEach(function (c) { %>
+              <li>
+                <label class="facet<%= c.count === 0 && !c.selected ? ' is-empty' : '' %>">
+                  <span class="facet-label"><input type="radio" name="category" value="<%= c.slug %>" <%= c.selected ? 'checked' : '' %>> <%= c.name %></span>
+                  <span class="count"><%= c.count %></span>
+                </label>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+
+        <div class="filter-group">
+          <h3>Brand</h3>
+          <% if (!result.facets.brands.length) { %><p class="muted small mb-0">No brands match these filters.</p><% } %>
+          <ul class="facet-list">
+            <% result.facets.brands.forEach(function (b) { %>
+              <li>
+                <label class="facet<%= b.count === 0 && !b.selected ? ' is-empty' : '' %>">
+                  <span class="facet-label"><input type="checkbox" name="brand" value="<%= b.slug %>" <%= b.selected ? 'checked' : '' %>> <%= b.name %></span>
+                  <span class="count"><%= b.count %></span>
+                </label>
+              </li>
+            <% }) %>
+          </ul>
+        </div>
+
+        <div class="filter-group">
+          <h3>Price (<%= store.currency === 'INR' ? '₹' : store.currency %>)</h3>
+          <div class="price-inputs">
+            <label class="sr-only" for="minPrice">Minimum price</label>
+            <input class="input" id="minPrice" type="number" name="minPrice" min="0" step="1" inputmode="numeric" placeholder="Min" value="<%= query.minPrice ?? '' %>">
+            <label class="sr-only" for="maxPrice">Maximum price</label>
+            <input class="input" id="maxPrice" type="number" name="maxPrice" min="0" step="1" inputmode="numeric" placeholder="Max" value="<%= query.maxPrice ?? '' %>">
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="checkbox"><input type="checkbox" name="inStock" value="1" <%= query.inStock ? 'checked' : '' %>> In stock only</label>
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn btn-primary btn-sm" type="submit">Apply</button>
+          <a class="btn btn-sm" href="/products<%= buildQuery({ q: query.q }) %>" data-shop-link>Reset</a>
+        </div>
+      </div>
+    </details>
+  </form>
+
+  <section aria-label="Results">
+    <div class="toolbar">
+      <span class="result-count" aria-live="polite">Showing <%= result.items.length ? (result.page - 1) * result.limit + 1 : 0 %>–<%= (result.page - 1) * result.limit + result.items.length %> of <%= formatNumber(result.total) %></span>
+      <div class="sort-control">
+        <label for="sort">Sort by</label>
+        <select id="sort" class="select" name="sort" form="filters-form" data-sort>
+          <% sortOptions.forEach(function (o) { %>
+            <option value="<%= o.value %>" <%= query.sort === o.value ? 'selected' : '' %>><%= o.label %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <% if (chips.length) { %>
+      <div class="chips">
+        <% chips.forEach(function (c) { %>
+          <a class="chip" href="<%= c.href %>" data-shop-link aria-label="Remove filter <%= c.label %>"><%= c.label %> <%- icon('x') %></a>
+        <% }) %>
+        <a class="chip chip-clear" href="/products" data-shop-link>Clear all</a>
+      </div>
+    <% } %>
+
+    <% if (intentPrice) { %>
+      <p class="intent-note"><%- icon('sparkle', 'icon-sm') %>
+        Understood your search as
+        <% if (result.intent.minPrice !== undefined && result.intent.maxPrice !== undefined) { %>prices between <strong><%= formatPrice(result.intent.minPrice) %></strong> and <strong><%= formatPrice(result.intent.maxPrice) %></strong>.<% } else if (result.intent.maxPrice !== undefined) { %>prices up to <strong><%= formatPrice(result.intent.maxPrice) %></strong>.<% } else { %>prices from <strong><%= formatPrice(result.intent.minPrice) %></strong>.<% } %>
+      </p>
+    <% } %>
+
+    <% if (result.items.length) { %>
+      <div class="product-grid cols-3">
+        <% result.items.forEach(function (p) { %><%- include('product-card', { product: p }) %><% }) %>
+      </div>
+      <%- include('pagination', { page: result.page, pages: result.pages, basePath: '/products', baseQuery: base, pageLinkAttr: 'data-shop-link' }) %>
+    <% } else { %>
+      <div class="empty-state">
+        <span class="icon-wrap"><%- icon('search') %></span>
+        <h2>No products match your search</h2>
+        <p>Try a different spelling, fewer words, or remove a filter. You can also browse a category from the menu above.</p>
+        <a class="btn btn-primary mt-2" href="/products" data-shop-link>Clear filters</a>
+      </div>
+    <% } %>
+  </section>
+</div>

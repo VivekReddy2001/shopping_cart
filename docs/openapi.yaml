@@ -1,0 +1,854 @@
+openapi: 3.0.3
+info:
+  title: Kartly REST API
+  version: '1.0'
+  description: |
+    JSON API behind the Kartly storefront. The server-rendered pages and this API run the
+    same service layer, so anything the website can do is available here.
+
+    **Authentication** is a session cookie (`kartly.sid`), set by `POST /auth/login` or
+    `POST /auth/register` and sent automatically by browsers.
+
+    **CSRF:** every unsafe request (POST, PATCH, DELETE) must carry the session's token in an
+    `X-CSRF-Token` header. Fetch one from `GET /auth/csrf-token`. The token is regenerated
+    when the session is (that is, on sign-in and sign-out), so read it again from the login
+    response.
+
+    **Guest carts:** cart endpoints work without signing in. The cart is tied to the session
+    and is merged into the user's cart on the next sign-in or registration.
+
+    **Errors** always use the shape `{"error": {"code", "message", "details"?}}`.
+
+    **Rate limits:** 900 requests per 15 minutes per IP for the API as a whole, and 20 per
+    15 minutes for `/auth/login` and `/auth/register`.
+  license:
+    name: MIT
+    url: https://github.com/VivekReddy2001/shopping_cart/blob/main/LICENSE
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+  - url: https://{host}/api/v1
+    description: Deployed instance
+    variables:
+      host:
+        default: kartly.onrender.com
+tags:
+  - name: Auth
+  - name: Catalogue
+  - name: Reviews
+  - name: Cart
+  - name: Orders
+  - name: Admin
+  - name: System
+
+paths:
+  /auth/csrf-token:
+    get:
+      tags: [Auth]
+      summary: Get a CSRF token for this session
+      security: []
+      responses:
+        '200':
+          description: The session's current token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      csrfToken: { type: string }
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Create an account and sign in
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password]
+              properties:
+                name: { type: string, minLength: 2, example: Vivek Reddy }
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8, format: password }
+      responses:
+        '201':
+          description: Account created, session started
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in
+      description: |
+        On success the session id is regenerated (session-fixation defence) and any guest
+        cart is merged into the account's cart. Unknown email and wrong password return the
+        same error, so the endpoint cannot be used to enumerate accounts.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email, example: demo@example.com }
+                password: { type: string, format: password, example: Demo@1234 }
+      responses:
+        '200':
+          description: Signed in
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Destroy the session
+      responses:
+        '200': { description: Signed out }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: The signed-in user, or null
+      security: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/User'
+                    nullable: true
+                    description: Null when nobody is signed in.
+
+  /products:
+    get:
+      tags: [Catalogue]
+      summary: Search, filter and page the catalogue
+      description: |
+        `q` accepts natural language: `phones under 20k`, `samsung between 10000 and 25000`.
+        Price phrases are lifted out of the text and applied as filters. Invalid query values
+        fall back to their defaults instead of returning an error.
+      security: []
+      parameters:
+        - {
+            name: q,
+            in: query,
+            schema: { type: string, maxLength: 100 },
+            example: phones under 20k,
+          }
+        - { name: category, in: query, schema: { type: string }, description: Category slug }
+        - {
+            name: brand,
+            in: query,
+            schema: { type: array, items: { type: string } },
+            style: form,
+            explode: true,
+          }
+        - { name: minPrice, in: query, schema: { type: number, minimum: 0 } }
+        - { name: maxPrice, in: query, schema: { type: number, minimum: 0 } }
+        - { name: rating, in: query, schema: { type: number, minimum: 0, maximum: 5 } }
+        - { name: inStock, in: query, schema: { type: boolean } }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [relevance, price_asc, price_desc, newest, rating, discount]
+            default: relevance
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 60, default: 24 },
+          }
+      responses:
+        '200':
+          description: A page of products plus facet counts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Product' }
+                  meta:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      page: { type: integer }
+                      pages: { type: integer }
+                      limit: { type: integer }
+                      appliedFilters: { type: object }
+                      facets: { type: object }
+    post:
+      tags: [Admin]
+      summary: Create a product
+      description: Admin only. `multipart/form-data`, because it carries the product image.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [name, description, price, stock, category, brand, image]
+              properties:
+                name: { type: string }
+                description: { type: string }
+                price: { type: number }
+                mrp: { type: number }
+                stock: { type: integer }
+                category: { type: string, description: Category id }
+                brand: { type: string, description: Brand id }
+                tags: { type: string, description: Comma-separated }
+                featured: { type: boolean }
+                isActive: { type: boolean, default: true }
+                image:
+                  type: string
+                  format: binary
+                  description: JPEG, PNG, WebP or GIF, 2 MB max. Verified by magic bytes.
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProductDetail' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /products/{idOrSlug}:
+    get:
+      tags: [Catalogue]
+      summary: One product by id or slug
+      security: []
+      parameters:
+        - {
+            name: idOrSlug,
+            in: path,
+            required: true,
+            schema: { type: string },
+            example: apple-iphone-11,
+          }
+      responses:
+        '200':
+          description: Product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProductDetail' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /products/{id}:
+    patch:
+      tags: [Admin]
+      summary: Update a product
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              description: Any subset of the create fields. Omitted fields are left untouched.
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/ProductDetail' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Admin]
+      summary: Archive a product
+      description: |
+        Products are never hard-deleted — `isActive` is set to `false` so past orders,
+        reviews and analytics stay valid. The product disappears from the storefront.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: string } }
+      responses:
+        '200': { description: Archived }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /products/{idOrSlug}/reviews:
+    get:
+      tags: [Reviews]
+      summary: Reviews for a product
+      security: []
+      parameters:
+        - { name: idOrSlug, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Reviews, newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Review' }
+    post:
+      tags: [Reviews]
+      summary: Create or replace your review
+      description: One review per customer per product; posting again updates the existing one.
+      parameters:
+        - { name: idOrSlug, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating: { type: integer, minimum: 1, maximum: 5 }
+                title: { type: string, maxLength: 120 }
+                comment: { type: string, maxLength: 1000 }
+      responses:
+        '200':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Review' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /cart:
+    get:
+      tags: [Cart]
+      summary: The current cart with live prices and totals
+      security: []
+      responses:
+        '200':
+          description: Cart
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Cart' }
+    delete:
+      tags: [Cart]
+      summary: Empty the cart
+      security: []
+      responses:
+        '204': { description: Emptied }
+
+  /cart/items:
+    post:
+      tags: [Cart]
+      summary: Add a product to the cart
+      description: |
+        Quantity is capped at the lower of the product's stock and the per-order limit
+        (10 by default); `meta.added` reports how many were actually added.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId]
+              properties:
+                productId: { type: string }
+                quantity: { type: integer, minimum: 1, default: 1 }
+      responses:
+        '201':
+          description: Added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Cart' }
+                  meta:
+                    type: object
+                    properties:
+                      added: { type: integer }
+                      message: { type: string }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /cart/items/{productId}:
+    patch:
+      tags: [Cart]
+      summary: Set the quantity of a line
+      security: []
+      parameters:
+        - { name: productId, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Cart' }
+        '409': { $ref: '#/components/responses/Conflict' }
+    delete:
+      tags: [Cart]
+      summary: Remove a line
+      security: []
+      parameters:
+        - { name: productId, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Cart' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /orders:
+    get:
+      tags: [Orders]
+      summary: Your orders, newest first
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+        - {
+            name: limit,
+            in: query,
+            schema: { type: integer, minimum: 1, maximum: 50, default: 10 },
+          }
+      responses:
+        '200':
+          description: Orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: '#/components/schemas/Order' }
+                  meta: { type: object }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [Orders]
+      summary: Place an order from the cart
+      description: |
+        Stock is reserved with an atomic conditional update per line, so two shoppers racing
+        for the last unit cannot both succeed — the loser gets `409 OUT_OF_STOCK` and nothing
+        is written. Prices, names and images are snapshotted into the order.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [shippingAddress, paymentMethod]
+              properties:
+                shippingAddress: { $ref: '#/components/schemas/Address' }
+                paymentMethod: { type: string, enum: [COD, ONLINE] }
+      responses:
+        '201':
+          description: Order placed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: The cart is empty
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/ValidationError' }
+
+  /orders/{orderNumber}:
+    get:
+      tags: [Orders]
+      summary: One of your orders
+      description: Orders belonging to someone else return 404, not 403, so the endpoint cannot be probed.
+      parameters:
+        - {
+            name: orderNumber,
+            in: path,
+            required: true,
+            schema: { type: string },
+            example: KRT-260911-7Q4ZK,
+          }
+      responses:
+        '200':
+          description: Order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Order' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /orders/{orderNumber}/cancel:
+    post:
+      tags: [Orders]
+      summary: Cancel an order you placed
+      description: Allowed while the order is PLACED or PROCESSING. Stock is returned and online payments are marked REFUNDED.
+      parameters:
+        - { name: orderNumber, in: path, required: true, schema: { type: string } }
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Order' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /admin/stats:
+    get:
+      tags: [Admin]
+      summary: Dashboard totals, revenue series and low-stock products
+      responses:
+        '200': { description: Statistics }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /admin/orders:
+    get:
+      tags: [Admin]
+      summary: Every order, with status counts
+      parameters:
+        - {
+            name: status,
+            in: query,
+            schema: { type: string, enum: [PLACED, PROCESSING, SHIPPED, DELIVERED, CANCELLED] },
+          }
+        - {
+            name: q,
+            in: query,
+            schema: { type: string },
+            description: Order number,
+            customer name or email,
+          }
+        - { name: page, in: query, schema: { type: integer, default: 1 } }
+      responses:
+        '200': { description: Orders }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /admin/orders/{orderNumber}/status:
+    patch:
+      tags: [Admin]
+      summary: Move an order to the next status
+      description: |
+        Only the transitions the state machine allows are accepted. The write is a
+        compare-and-set on the current status, so a repeated or concurrent update returns
+        `409 STALE_ORDER` rather than applying twice.
+      parameters:
+        - { name: orderNumber, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [PLACED, PROCESSING, SHIPPED, DELIVERED, CANCELLED] }
+                note: { type: string, maxLength: 200 }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { $ref: '#/components/schemas/Order' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+
+  /health:
+    get:
+      tags: [System]
+      summary: Liveness and database probe
+      description: Served outside `/api/v1`, before the session middleware, so monitors never create sessions.
+      security: []
+      servers:
+        - url: http://localhost:3000
+      responses:
+        '200':
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+                  database: { type: string, example: up }
+                  version: { type: string }
+                  uptimeSeconds: { type: integer }
+                  timestamp: { type: string, format: date-time }
+        '503': { description: The database is unreachable }
+
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: kartly.sid
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRF-Token
+
+  schemas:
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        url: { type: string }
+        image: { type: string }
+        brand: { $ref: '#/components/schemas/Ref' }
+        category: { $ref: '#/components/schemas/Ref' }
+        price: { type: number }
+        mrp: { type: number }
+        discountPercent: { type: integer }
+        stock: { type: integer }
+        inStock: { type: boolean }
+        rating:
+          type: object
+          properties:
+            average: { type: number }
+            count: { type: integer }
+        featured: { type: boolean }
+
+    ProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/Product'
+        - type: object
+          properties:
+            description: { type: string }
+            highlights: { type: array, items: { type: string } }
+            tags: { type: array, items: { type: string } }
+            isActive: { type: boolean }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+
+    Ref:
+      type: object
+      nullable: true
+      properties:
+        name: { type: string }
+        slug: { type: string }
+
+    Cart:
+      type: object
+      properties:
+        id: { type: string, nullable: true }
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId: { type: string }
+              name: { type: string }
+              slug: { type: string }
+              url: { type: string }
+              image: { type: string }
+              brand: { type: string }
+              price: { type: number }
+              mrp: { type: number }
+              quantity: { type: integer }
+              maxQuantity: { type: integer }
+              inStock: { type: boolean }
+              lineTotal: { type: number }
+        itemCount: { type: integer }
+        subtotal: { type: number }
+        shipping: { type: number }
+        tax: { type: number, description: GST already included in the prices shown }
+        total: { type: number }
+        freeShippingRemaining: { type: number }
+        canCheckout: { type: boolean }
+        issues: { type: array, items: { type: string } }
+
+    Order:
+      type: object
+      properties:
+        orderNumber: { type: string, example: KRT-260911-7Q4ZK }
+        invoiceNumber: { type: string, example: INV-2026-000042 }
+        status: { type: string, enum: [PLACED, PROCESSING, SHIPPED, DELIVERED, CANCELLED] }
+        statusHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              status: { type: string }
+              at: { type: string, format: date-time }
+              note: { type: string }
+        items:
+          type: array
+          items:
+            type: object
+            description: A snapshot taken at purchase time, not a live product reference.
+            properties:
+              productId: { type: string }
+              name: { type: string }
+              image: { type: string }
+              price: { type: number }
+              quantity: { type: integer }
+              lineTotal: { type: number }
+        shippingAddress: { $ref: '#/components/schemas/Address' }
+        payment:
+          type: object
+          properties:
+            method: { type: string, enum: [COD, ONLINE] }
+            status: { type: string, enum: [PENDING, PAID, REFUNDED] }
+            transactionId: { type: string, nullable: true }
+            paidAt: { type: string, format: date-time, nullable: true }
+        amounts:
+          type: object
+          properties:
+            subtotal: { type: number }
+            shipping: { type: number }
+            tax: { type: number }
+            total: { type: number }
+        createdAt: { type: string, format: date-time }
+        links:
+          type: object
+          properties:
+            self: { type: string }
+            invoicePdf: { type: string }
+
+    Address:
+      type: object
+      required: [fullName, phone, line1, city, state, postalCode]
+      properties:
+        fullName: { type: string }
+        phone: { type: string, example: '+91 98765 43210' }
+        line1: { type: string }
+        line2: { type: string }
+        city: { type: string }
+        state: { type: string }
+        postalCode: { type: string, example: '560001' }
+        country: { type: string, default: India }
+
+    User:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        email: { type: string, format: email }
+        role: { type: string, enum: [customer, admin] }
+        readOnly:
+          { type: boolean, description: True for the public demo admin — every write is refused. }
+        isDemo: { type: boolean }
+
+    Review:
+      type: object
+      properties:
+        id: { type: string }
+        authorName: { type: string }
+        rating: { type: integer }
+        title: { type: string }
+        comment: { type: string }
+        verifiedPurchase: { type: boolean }
+        createdAt: { type: string, format: date-time }
+
+    AuthResponse:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            user: { $ref: '#/components/schemas/User' }
+            csrfToken: { type: string, description: The new token for the regenerated session. }
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code: { type: string, example: OUT_OF_STOCK }
+            message: { type: string }
+            details:
+              type: object
+              additionalProperties: { type: string }
+              description: Field-level messages, for validation failures.
+
+  responses:
+    Unauthorized:
+      description: Not signed in
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Signed in, but not allowed (including the read-only demo admin)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: No such resource
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: The request clashes with the current state — out of stock, stale order, duplicate
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ValidationError:
+      description: The body failed validation
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+security:
+  - sessionCookie: []
+    csrfToken: []

@@ -1,0 +1,119 @@
+<%
+  const action = product ? `/admin/products/${product._id}` : '/admin/products';
+  const e = errors || {};
+  const inv = (f) => (e[f] ? 'aria-invalid="true"' : '');
+  const msg = (f) => (e[f] ? `<span class="field-error">${icon('alert', 'icon-sm')}${e[f].replace(/</g, '&lt;')}</span>` : '');
+%>
+<div class="admin-topbar">
+  <div>
+    <h1><%= product ? 'Edit product' : 'Add product' %></h1>
+    <p><%= product ? product.name : 'Create a new catalogue item with an image, price and stock.' %></p>
+  </div>
+  <a class="btn btn-ghost" href="/admin/products"><%- icon('arrow-left') %> Back to products</a>
+</div>
+
+<form action="<%= action %>?_csrf=<%= encodeURIComponent(csrfToken()) %>" method="post" enctype="multipart/form-data" novalidate data-disable-on-submit>
+  <% if (Object.keys(e).length) { %><div class="form-alert" role="alert"><%- icon('alert') %><span>Please fix the highlighted fields.</span></div><% } %>
+  <div class="form-card-grid">
+    <div class="stack">
+      <section class="card">
+        <div class="card-header"><h2>Details</h2></div>
+        <div class="card-body">
+          <div class="field">
+            <label class="label" for="p-name">Product name</label>
+            <input class="input" id="p-name" name="name" value="<%= values.name %>" maxlength="140" required <%- inv('name') %>>
+            <%- msg('name') %>
+          </div>
+          <div class="field">
+            <label class="label" for="p-description">Description</label>
+            <textarea class="textarea" id="p-description" name="description" rows="5" maxlength="4000" required <%- inv('description') %>><%= values.description %></textarea>
+            <%- msg('description') %>
+          </div>
+          <div class="field">
+            <label class="label" for="p-highlights">Highlights <span class="optional">(one per line, up to 8)</span></label>
+            <textarea class="textarea" id="p-highlights" name="highlights" rows="4" <%- inv('highlights') %>><%= values.highlights %></textarea>
+            <%- msg('highlights') %>
+          </div>
+          <div class="field">
+            <label class="label" for="p-tags">Search tags <span class="optional">(comma separated)</span></label>
+            <input class="input" id="p-tags" name="tags" value="<%= values.tags %>" placeholder="e.g. phone, 5g, android">
+            <span class="field-hint">Extra keywords that help text and voice search find this product.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header"><h2>Pricing &amp; inventory</h2></div>
+        <div class="card-body">
+          <div class="form-grid">
+            <div class="field">
+              <label class="label" for="p-price">Selling price (₹)</label>
+              <input class="input" id="p-price" name="price" type="number" min="1" step="0.01" value="<%= values.price %>" required <%- inv('price') %>>
+              <%- msg('price') %>
+            </div>
+            <div class="field">
+              <label class="label" for="p-mrp">MRP (₹) <span class="optional">(optional)</span></label>
+              <input class="input" id="p-mrp" name="mrp" type="number" min="1" step="0.01" value="<%= values.mrp %>" <%- inv('mrp') %>>
+              <%- msg('mrp') %>
+            </div>
+            <div class="field">
+              <label class="label" for="p-stock">Units in stock</label>
+              <input class="input" id="p-stock" name="stock" type="number" min="0" step="1" value="<%= values.stock %>" required <%- inv('stock') %>>
+              <%- msg('stock') %>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="stack">
+      <section class="card">
+        <div class="card-header"><h2>Organisation</h2></div>
+        <div class="card-body">
+          <div class="field">
+            <label class="label" for="p-category">Category</label>
+            <select class="select" id="p-category" name="category" required <%- inv('category') %>>
+              <option value="">Choose a category</option>
+              <% taxonomy.categories.forEach(function (c) { %><option value="<%= c._id %>" <%= String(values.category) === String(c._id) ? 'selected' : '' %>><%= c.name %></option><% }) %>
+            </select>
+            <%- msg('category') %>
+          </div>
+          <div class="field">
+            <label class="label" for="p-brand">Brand</label>
+            <select class="select" id="p-brand" name="brand" required <%- inv('brand') %>>
+              <option value="">Choose a brand</option>
+              <% taxonomy.brands.forEach(function (b) { %><option value="<%= b._id %>" <%= String(values.brand) === String(b._id) ? 'selected' : '' %>><%= b.name %></option><% }) %>
+            </select>
+            <%- msg('brand') %>
+            <span class="field-hint"><a href="/admin/catalog">Manage categories &amp; brands</a></span>
+          </div>
+          <div class="field">
+            <label class="checkbox"><input type="checkbox" name="featured" <%= values.featured ? 'checked' : '' %>> Feature on the home page</label>
+          </div>
+          <div class="field">
+            <label class="checkbox"><input type="checkbox" name="isActive" <%= values.isActive ? 'checked' : '' %>> Visible in the store</label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header"><h2>Image</h2></div>
+        <div class="card-body">
+          <div class="image-preview">
+            <img src="<%= product ? product.image : '/img/logo-mark.svg' %>" alt="" width="120" height="120" data-image-preview>
+            <div class="field">
+              <label class="label" for="p-image"><%= product ? 'Replace image' : 'Upload image' %></label>
+              <input class="input" id="p-image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/gif" data-image-input <%= product ? '' : 'required' %> <%- inv('image') %>>
+              <span class="field-hint">JPEG, PNG, WebP or GIF · up to 2 MB · square images look best.</span>
+              <%- msg('image') %>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <div class="sticky-actions">
+    <a class="btn" href="/admin/products">Cancel</a>
+    <button class="btn btn-primary" type="submit"><%- icon('check') %> <%= product ? 'Save changes' : 'Create product' %></button>
+  </div>
+</form>

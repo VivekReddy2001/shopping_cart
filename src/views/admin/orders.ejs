@@ -1,0 +1,49 @@
+<div class="admin-topbar">
+  <div><h1>Orders</h1><p><%= pluralize(result.allCount, 'order') %> in total · update statuses inline or open an order for details</p></div>
+</div>
+
+<div class="tabs" role="navigation" aria-label="Order status">
+  <a class="tab" href="/admin/orders<%= buildQuery({ q: filters.q }) %>" <% if (!filters.status) { %>aria-current="page"<% } %>>All <span class="count"><%= result.allCount %></span></a>
+  <% Object.entries(result.statusCounts).forEach(function ([s, n]) { %>
+    <a class="tab" href="/admin/orders<%= buildQuery({ status: s, q: filters.q }) %>" <% if (filters.status === s) { %>aria-current="page"<% } %>><%= statusLabel(s) %> <span class="count"><%= n %></span></a>
+  <% }) %>
+</div>
+
+<form class="admin-filters" method="get" action="/admin/orders">
+  <% if (filters.status) { %><input type="hidden" name="status" value="<%= filters.status %>"><% } %>
+  <label class="sr-only" for="order-search">Search orders</label>
+  <input class="input" id="order-search" type="search" name="q" value="<%= filters.q %>" placeholder="Order number, customer name or email…">
+  <button class="btn" type="submit"><%- icon('search') %> Search</button>
+</form>
+
+<section class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">Order</th><th scope="col">Customer</th><th scope="col" class="num">Items</th><th scope="col" class="num">Total</th><th scope="col">Payment</th><th scope="col">Status</th></tr></thead>
+      <tbody>
+        <% if (!result.items.length) { %><tr><td colspan="6" class="muted">No orders found.</td></tr><% } %>
+        <% result.items.forEach(function (o) { const next = transitions[o.status]; %>
+          <tr>
+            <td><a class="num" href="/admin/orders/<%= o.orderNumber %>"><strong><%= o.orderNumber %></strong></a><div class="muted small"><%= formatDateTime(o.createdAt) %></div></td>
+            <td><%= o.customer.name %><div class="muted small"><%= o.customer.email %></div></td>
+            <td class="num"><%= o.items.reduce((s, i) => s + i.quantity, 0) %></td>
+            <td class="num"><%= formatPrice(o.amounts.total) %></td>
+            <td><span class="badge badge-<%= PAYMENT_STATUS_META[o.payment.status].tone %>"><%= PAYMENT_STATUS_META[o.payment.status].label %></span><div class="muted small"><%= o.payment.method === 'COD' ? 'Cash on Delivery' : 'Online' %></div></td>
+            <td>
+              <% if (next.length && !currentUser.readOnly) { %>
+                <label class="sr-only" for="status-<%= o.orderNumber %>">Status for <%= o.orderNumber %></label>
+                <select class="select" id="status-<%= o.orderNumber %>" data-order-status="<%= o.orderNumber %>" data-current="<%= o.status %>">
+                  <option value="<%= o.status %>" selected><%= statusLabel(o.status) %></option>
+                  <% next.forEach(function (s) { %><option value="<%= s %>">→ <%= statusLabel(s) %></option><% }) %>
+                </select>
+              <% } else { %>
+                <%- include('../partials/status-badge', { status: o.status }) %>
+              <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/pagination', { page: result.page, pages: result.pages, basePath: '/admin/orders', baseQuery: { status: filters.status, q: filters.q } }) %>

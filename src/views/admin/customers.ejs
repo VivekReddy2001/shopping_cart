@@ -1,0 +1,32 @@
+<div class="admin-topbar">
+  <div><h1>Customers</h1><p><%= pluralize(result.total, 'account') %></p></div>
+</div>
+<form class="admin-filters" method="get" action="/admin/customers">
+  <label class="sr-only" for="customer-search">Search customers</label>
+  <input class="input" id="customer-search" type="search" name="q" value="<%= q %>" placeholder="Search by name or email…">
+  <button class="btn" type="submit"><%- icon('search') %> Search</button>
+</form>
+<section class="card">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col" class="num">Orders</th><th scope="col" class="num">Total spent</th><th scope="col">Last order</th><th scope="col">Joined</th></tr></thead>
+      <tbody>
+        <% if (!result.items.length) { %><tr><td colspan="6" class="muted">No accounts found.</td></tr><% } %>
+        <% result.items.forEach(function (u) { %>
+          <tr>
+            <td><div class="cell-product"><span class="avatar"><%= initials(u.name) %></span><div><strong><%= u.name %></strong><div class="muted small"><%= u.email %></div></div></div></td>
+            <td>
+              <% if (u.role === 'admin') { %><span class="badge badge-primary"><%= u.readOnly ? 'Admin (read-only)' : 'Admin' %></span><% } else { %><span class="badge badge-neutral">Customer</span><% } %>
+              <% if (u.isDemo) { %> <span class="badge badge-warning">Demo</span><% } %>
+            </td>
+            <td class="num"><%= u.orders %></td>
+            <td class="num"><%= formatPrice(u.spent) %></td>
+            <td><%= u.lastOrderAt ? formatDate(u.lastOrderAt) : '—' %></td>
+            <td><%= formatDate(u.createdAt) %></td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</section>
+<%- include('../partials/pagination', { page: result.page, pages: result.pages, basePath: '/admin/customers', baseQuery: { q } }) %>

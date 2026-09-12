@@ -1,0 +1,85 @@
+<%
+  const err = (f) => errors[f];
+  const invalid = (f) => (errors[f] ? 'aria-invalid="true" aria-describedby="' + f + '-error"' : '');
+  const fields = [
+    { name: 'fullName', label: 'Full name', autocomplete: 'name', span: false },
+    { name: 'phone', label: 'Phone number', autocomplete: 'tel', type: 'tel', span: false },
+    { name: 'line1', label: 'Address (house no., building, street)', autocomplete: 'address-line1', span: true },
+    { name: 'line2', label: 'Landmark / area', autocomplete: 'address-line2', span: true, optional: true },
+    { name: 'city', label: 'City', autocomplete: 'address-level2' },
+    { name: 'state', label: 'State', autocomplete: 'address-level1' },
+    { name: 'postalCode', label: 'PIN code', autocomplete: 'postal-code', inputmode: 'numeric' },
+    { name: 'country', label: 'Country', autocomplete: 'country-name' },
+  ];
+%>
+<div class="container page">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol><li><a href="/cart">Cart</a></li><li><span aria-current="page">Checkout</span></li></ol>
+  </nav>
+  <h1>Checkout</h1>
+
+  <form action="/checkout" method="post" class="checkout-layout" data-disable-on-submit novalidate>
+    <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+    <div class="stack">
+      <% if (Object.keys(errors).length) { %>
+        <div class="form-alert" role="alert"><%- icon('alert') %><span>Please check the highlighted fields and try again.</span></div>
+      <% } %>
+      <section class="card">
+        <div class="card-body">
+          <div class="checkout-step"><span class="n">1</span><h2>Shipping address</h2></div>
+          <div class="form-grid">
+            <% fields.forEach(function (f) { %>
+              <div class="field<%= f.span ? ' span-2' : '' %>">
+                <label class="label" for="f-<%= f.name %>"><%= f.label %><% if (f.optional) { %> <span class="optional">(optional)</span><% } %></label>
+                <input class="input" id="f-<%= f.name %>" name="<%= f.name %>" type="<%= f.type || 'text' %>" value="<%= values[f.name] || '' %>"
+                       autocomplete="<%= f.autocomplete %>" <%= f.inputmode ? `inputmode=${f.inputmode}` : '' %> <%= f.optional ? '' : 'required' %> <%- invalid(f.name) %>>
+                <% if (err(f.name)) { %><span class="field-error" id="<%= f.name %>-error"><%- icon('alert', 'icon-sm') %><%= err(f.name) %></span><% } %>
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-body">
+          <div class="checkout-step"><span class="n">2</span><h2>Payment method</h2></div>
+          <div class="radio-cards" role="radiogroup" aria-label="Payment method">
+            <label class="radio-card">
+              <input type="radio" name="paymentMethod" value="COD" <%= values.paymentMethod !== 'ONLINE' ? 'checked' : '' %>>
+              <span><strong><%- icon('cash') %> Cash on Delivery</strong><p>Pay in cash or UPI when your order arrives.</p></span>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="paymentMethod" value="ONLINE" <%= values.paymentMethod === 'ONLINE' ? 'checked' : '' %>>
+              <span><strong><%- icon('card') %> Pay online <span class="badge badge-warning">Demo</span></strong><p>Simulated payment — no card details are collected. The order is marked as paid instantly.</p></span>
+            </label>
+          </div>
+          <% if (err('paymentMethod')) { %><span class="field-error mt-1"><%- icon('alert', 'icon-sm') %><%= err('paymentMethod') %></span><% } %>
+        </div>
+      </section>
+    </div>
+
+    <aside class="card summary-card" aria-labelledby="checkout-summary">
+      <div class="card-body">
+        <h2 id="checkout-summary" class="mb-2">Your order</h2>
+        <ul class="checkout-items" aria-label="Items">
+          <% cart.lines.forEach(function (l) { %>
+            <li class="checkout-item">
+              <img src="<%= l.image %>" alt="" width="52" height="52">
+              <span><%= l.name %> <span class="qty">× <%= l.quantity %></span></span>
+              <strong class="num"><%= formatPrice(l.lineTotal) %></strong>
+            </li>
+          <% }) %>
+        </ul>
+        <div class="summary-rows">
+          <div class="summary-row"><span>Subtotal</span><span class="num"><%= formatPrice(cart.subtotal) %></span></div>
+          <div class="summary-row"><span>Shipping</span><span class="num <%= cart.shipping ? '' : 'free' %>"><%= cart.shipping ? formatPrice(cart.shipping) : 'Free' %></span></div>
+          <div class="summary-row total"><span>Total</span><span class="num"><%= formatPrice(cart.total) %></span></div>
+          <p class="muted small mb-0">Includes <%= formatPrice(cart.tax) %> GST</p>
+        </div>
+        <button class="btn btn-primary btn-lg btn-block mt-3" type="submit" <%= cart.canCheckout ? '' : 'disabled' %>><%- icon('lock') %> Place order · <%= formatPrice(cart.total) %></button>
+        <% if (!cart.canCheckout) { %><p class="field-error mt-1">Some items need attention. <a href="/cart">Review your cart</a>.</p><% } %>
+        <p class="secure-note">By placing this order you agree to the demo store terms.</p>
+      </div>
+    </aside>
+  </form>
+</div>

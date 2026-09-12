@@ -1,0 +1,10 @@
+<div class="container error-page">
+  <div class="error-code"><%= status %></div>
+  <h1><%= status === 404 ? 'We couldn’t find that page' : status === 403 ? 'You don’t have access to this page' : status < 500 ? 'Something’s not right' : 'Something went wrong' %></h1>
+  <p><%= status === 404 ? 'The page may have moved or the product is no longer available. Try searching for it instead.' : message %></p>
+  <div class="row row-center">
+    <a class="btn btn-primary" href="/"><%- icon('home') %> Back to home</a>
+    <a class="btn" href="/products">Browse products</a>
+  </div>
+  <% if (stack) { %><pre class="error-stack"><%= stack %></pre><% } %>
+</div>

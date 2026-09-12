@@ -1,0 +1,32 @@
+<div class="admin-topbar">
+  <div>
+    <h1 class="num">Order <%= order.orderNumber %></h1>
+    <p>Placed <%= formatDateTime(order.createdAt) %> by <strong><%= order.customer.name %></strong> (<%= order.customer.email %>)</p>
+  </div>
+  <div class="row">
+    <a class="btn btn-ghost" href="/admin/orders"><%- icon('arrow-left') %> All orders</a>
+  </div>
+</div>
+
+<section class="card mb-2">
+  <div class="card-body">
+    <% if (nextStatuses.length) { %>
+      <form class="row" action="/admin/orders/<%= order.orderNumber %>/status" method="post" data-disable-on-submit>
+        <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+        <strong>Update status</strong>
+        <label class="sr-only" for="next-status">New status</label>
+        <select class="select" id="next-status" name="status" required>
+          <% nextStatuses.forEach(function (s) { %><option value="<%= s %>"><%= statusLabel(s) %></option><% }) %>
+        </select>
+        <label class="sr-only" for="status-note">Note</label>
+        <input class="input" id="status-note" name="note" maxlength="200" placeholder="Optional note (e.g. courier & tracking ID)">
+        <button class="btn btn-primary" type="submit" <%= currentUser.readOnly ? 'disabled' : '' %>>Update</button>
+        <span class="muted small">The customer is notified by email.<% if (nextStatuses.includes('CANCELLED')) { %> Cancelling restocks items<%= order.payment.status === 'PAID' ? ' and refunds the payment' : '' %>.<% } %></span>
+      </form>
+    <% } else { %>
+      <p class="mb-0 muted"><%- icon('info', 'icon-sm') %> This order is <%= statusLabel(order.status).toLowerCase() %> — no further status changes are possible.</p>
+    <% } %>
+  </div>
+</section>
+
+<%- include('../partials/order-details') %>

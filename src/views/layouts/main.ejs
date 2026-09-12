@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <script src="/js/head.js?v=<%= assetVersion %>"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><%= title ? `${title} · ${appName}` : `${appName} — Online shopping` %></title>
+  <meta name="description" content="<%= description || 'Kartly — shop phones, laptops, TVs, appliances, furniture and fashion with fast search, voice search and secure checkout.' %>">
+  <meta name="theme-color" content="#6D28D9">
+  <meta name="csrf-token" content="<%= csrfToken() %>">
+  <% if (locals.canonicalUrl) { %><link rel="canonical" href="<%= canonicalUrl %>">
+  <meta property="og:url" content="<%= canonicalUrl %>">
+  <% } %><meta property="og:site_name" content="<%= appName %>">
+  <meta property="og:title" content="<%= title || appName %>">
+  <meta property="og:type" content="website">
+  <meta property="og:description" content="<%= description || 'Kartly — shop phones, laptops, TVs, appliances, furniture and fashion with fast search, voice search and secure checkout.' %>">
+  <% if (locals.siteUrl) { %><meta property="og:image" content="<%= siteUrl %>/img/og-cover.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <% } %><meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="preload" href="/fonts/poppins-regular.woff" as="font" type="font/woff" crossorigin>
+  <link rel="stylesheet" href="/css/app.css?v=<%= assetVersion %>">
+  <script src="/js/app.js?v=<%= assetVersion %>" defer></script>
+  <% scripts.forEach(function (src) { %><script src="<%= src %>?v=<%= assetVersion %>" defer></script>
+  <% }) %>
+</head>
+<body class="<%= bodyClass %>" data-authenticated="<%= currentUser ? 'true' : 'false' %>">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <%- include('../partials/header') %>
+  <main id="main" tabindex="-1">
+    <% if (flashMessages.length) { %><div class="container"><%- include('../partials/flash') %></div><% } %>
+    <%- body %>
+  </main>
+  <%- include('../partials/footer') %>
+  <div class="toast-region" id="toast-region" aria-live="polite"></div>
+  <%- include('../partials/confirm-dialog') %>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<div data-cart-count-value="<%= cart.itemCount %>" hidden></div>
+<% if (!cart.lines.length) { %>
+  <div class="empty-state">
+    <span class="icon-wrap"><%- icon('cart') %></span>
+    <h2>Your cart is empty</h2>
+    <p>Looks like you haven’t added anything yet. Explore today’s deals or search for something specific.</p>
+    <div class="row mt-2 row-center">
+      <a class="btn btn-primary" href="/products">Start shopping</a>
+      <a class="btn" href="/products?sort=discount">View deals</a>
+    </div>
+  </div>
+<% } else { %>
+  <div class="row-between mb-2">
+    <h1 class="mb-0">Your cart <span class="muted">(<%= pluralize(cart.itemCount, 'item') %>)</span></h1>
+    <form method="post" action="/cart/clear" data-cart-clear-form>
+      <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+      <button type="submit" class="btn btn-ghost btn-sm" data-cart-clear><%- icon('trash', 'icon-sm') %> Clear cart</button>
+    </form>
+  </div>
+
+  <% if (cart.issues.length) { %>
+    <div class="flash flash-warning mb-2" role="alert"><%- icon('alert') %><p><%= cart.issues.join(' ') %></p></div>
+  <% } %>
+
+  <div class="cart-layout">
+    <ul class="cart-lines" aria-label="Items in your cart">
+      <% cart.lines.forEach(function (l) { %>
+        <li class="cart-line<%= l.inStock ? '' : ' has-issue' %>" data-cart-line data-product-id="<%= l.productId %>">
+          <a href="/products/<%= l.slug %>" tabindex="-1" aria-hidden="true"><img src="<%= l.image %>" alt="" width="96" height="96" loading="lazy"></a>
+          <div>
+            <span class="product-brand"><%= l.brand %></span>
+            <h3><a href="/products/<%= l.slug %>"><%= l.name %></a></h3>
+            <div class="cart-line-meta">
+              <%= formatPrice(l.price) %> each
+              <% if (l.mrp > l.price) { %> · <span class="discount"><%= l.discountPercent %>% off</span><% } %>
+            </div>
+            <form class="cart-line-controls" method="post" action="/cart/items/<%= l.productId %>" data-cart-form>
+              <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+              <%# First submit button in the form, so pressing Enter in the quantity
+                  field updates the line instead of stepping it down. Only shown
+                  when JavaScript is unavailable; CSS moves it to the end. %>
+              <button type="submit" class="btn btn-ghost btn-sm no-js-only" name="update" value="1">Update</button>
+              <div class="qty-stepper sm">
+                <button type="submit" name="delta" value="-1" data-cart-step="-1" aria-label="Decrease quantity of <%= l.name %>" <%= l.quantity <= 1 ? 'disabled' : '' %>><%- icon('minus', 'icon-sm') %></button>
+                <input type="number" name="quantity" value="<%= l.quantity %>" min="1" max="<%= Math.max(l.maxQuantity, 1) %>" inputmode="numeric" aria-label="Quantity of <%= l.name %>" data-cart-qty>
+                <button type="submit" name="delta" value="1" data-cart-step="1" aria-label="Increase quantity of <%= l.name %>" <%= l.quantity >= l.maxQuantity ? 'disabled' : '' %>><%- icon('plus', 'icon-sm') %></button>
+              </div>
+              <button type="submit" class="link-btn" name="remove" value="1" data-cart-remove><%- icon('trash', 'icon-sm') %> Remove</button>
+            </form>
+            <% if (!l.inStock) { %>
+              <p class="line-issue"><%- icon('alert', 'icon-sm') %> <%= l.stock === 0 ? 'Out of stock' : `Only ${l.stock} available` %></p>
+            <% } else if (l.stock <= store.lowStockThreshold) { %>
+              <p class="stock-note mt-1">Only <%= l.stock %> left</p>
+            <% } %>
+          </div>
+          <div class="cart-line-total">
+            <strong><%= formatPrice(l.lineTotal) %></strong>
+            <% if (l.mrp > l.price) { %><span class="mrp"><%= formatPrice(l.mrp * l.quantity) %></span><% } %>
+          </div>
+        </li>
+      <% }) %>
+    </ul>
+
+    <aside class="card summary-card" aria-labelledby="summary-title">
+      <div class="card-body">
+        <h2 id="summary-title" class="mb-2">Order summary</h2>
+        <div class="summary-rows">
+          <div class="summary-row"><span>Subtotal (<%= pluralize(cart.itemCount, 'item') %>)</span><span class="num"><%= formatPrice(cart.subtotal) %></span></div>
+          <div class="summary-row"><span>Shipping</span><span class="num <%= cart.shipping ? '' : 'free' %>"><%= cart.shipping ? formatPrice(cart.shipping) : 'Free' %></span></div>
+          <div class="summary-row total"><span>Total</span><span class="num"><%= formatPrice(cart.total) %></span></div>
+          <p class="muted small mb-0">Includes <%= formatPrice(cart.tax) %> GST</p>
+        </div>
+        <% if (cart.freeShippingRemaining > 0) { %>
+          <div class="free-shipping">
+            Add <strong><%= formatPrice(cart.freeShippingRemaining) %></strong> more for free delivery.
+            <progress max="<%= store.freeShippingThreshold %>" value="<%= cart.subtotal %>" aria-label="Progress towards free delivery"></progress>
+          </div>
+        <% } else { %>
+          <div class="free-shipping done"><%- icon('check-circle', 'icon-sm') %> You’ve unlocked free delivery.</div>
+        <% } %>
+        <% if (cart.canCheckout) { %>
+          <a class="btn btn-primary btn-lg btn-block mt-2" href="/checkout">Proceed to checkout <%- icon('arrow-right') %></a>
+        <% } else { %>
+          <button class="btn btn-primary btn-lg btn-block mt-2" type="button" disabled>Resolve cart issues to continue</button>
+        <% } %>
+        <% if (!currentUser) { %><p class="muted small mt-1 mb-0">You’ll sign in or create an account at checkout — your cart is saved.</p><% } %>
+        <p class="secure-note"><%- icon('lock', 'icon-sm') %> Secure checkout · Cash on Delivery available</p>
+      </div>
+    </aside>
+  </div>
+<% } %>

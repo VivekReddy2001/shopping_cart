@@ -1,0 +1,180 @@
+<% const lowStock = product.stock > 0 && product.stock <= store.lowStockThreshold; %>
+<div class="container page">
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="/">Home</a></li>
+      <li><a href="/products?category=<%= product.category.slug %>"><%= product.category.name %></a></li>
+      <li><span aria-current="page"><%= product.name %></span></li>
+    </ol>
+  </nav>
+
+  <div class="pdp">
+    <div class="pdp-media">
+      <img src="<%= product.image %>" alt="<%= product.name %>" width="600" height="600">
+      <div class="product-flags">
+        <% if (product.stock === 0) { %><span class="badge badge-neutral">Sold out</span>
+        <% } else if (product.discountPercent >= 15) { %><span class="badge badge-deal"><%= product.discountPercent %>% off</span><% } %>
+        <% if (product.featured) { %><span class="badge badge-primary"><%- icon('sparkle') %> Featured</span><% } %>
+      </div>
+    </div>
+
+    <div class="pdp-info">
+      <a class="pdp-brand" href="/products?brand=<%= product.brand.slug %>"><%= product.brand.name %></a>
+      <h1><%= product.name %></h1>
+      <div class="pdp-rating">
+        <% if (product.rating.count) { %>
+          <%- stars(product.rating.average) %>
+          <a href="#reviews"><%= product.rating.average.toFixed(1) %> · <%= pluralize(product.rating.count, 'review') %></a>
+        <% } else { %>
+          <%- stars(0, false) %> <span>No reviews yet</span>
+        <% } %>
+        <% if (product.soldCount > 0) { %><span>· <%= formatNumber(product.soldCount) %> sold</span><% } %>
+      </div>
+
+      <div class="pdp-price">
+        <span class="price"><%= formatPrice(product.price) %></span>
+        <% if (product.mrp > product.price) { %>
+          <span class="mrp">MRP <%= formatPrice(product.mrp) %></span>
+          <span class="discount">Save <%= formatPrice(product.mrp - product.price) %> (<%= product.discountPercent %>%)</span>
+        <% } %>
+      </div>
+      <p class="tax-note">Inclusive of all taxes</p>
+
+      <% if (product.stock === 0) { %>
+        <p class="stock-status out"><%- icon('x-circle') %> Currently out of stock</p>
+      <% } else if (lowStock) { %>
+        <p class="stock-status low"><%- icon('alert') %> Hurry — only <%= product.stock %> left in stock</p>
+      <% } else { %>
+        <p class="stock-status in"><%- icon('check-circle') %> In stock and ready to ship</p>
+      <% } %>
+
+      <% if (product.stock > 0) { %>
+        <form class="purchase" method="post" action="/cart/items" data-add-form>
+          <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+          <input type="hidden" name="productId" value="<%= product._id %>">
+          <input type="hidden" name="next" value="<%= currentUrl %>">
+          <div class="qty-stepper" data-qty-stepper data-max="<%= maxQty %>">
+            <button type="button" data-step="-1" aria-label="Decrease quantity"><%- icon('minus', 'icon-sm') %></button>
+            <input id="pdp-qty" name="quantity" type="number" value="1" min="1" max="<%= maxQty %>" inputmode="numeric" aria-label="Quantity" data-qty-input>
+            <button type="button" data-step="1" aria-label="Increase quantity"><%- icon('plus', 'icon-sm') %></button>
+          </div>
+          <button type="submit" class="btn btn-soft btn-lg" data-add-to-cart="<%= product._id %>" data-qty-from="#pdp-qty" data-product-name="<%= product.name %>"><%- icon('cart') %> Add to cart</button>
+          <button type="submit" name="buyNow" value="1" class="btn btn-primary btn-lg" data-add-to-cart="<%= product._id %>" data-qty-from="#pdp-qty" data-buy-now><%- icon('arrow-right') %> Buy now</button>
+        </form>
+      <% } else { %>
+        <div class="purchase"><a class="btn btn-lg" href="/products?category=<%= product.category.slug %>">Browse similar products</a></div>
+      <% } %>
+
+      <div class="perks">
+        <div class="perk"><%- icon('truck') %><span><strong>Delivery in 3–5 days.</strong> Free on orders over <%= formatPrice(store.freeShippingThreshold) %>, otherwise <%= formatPrice(store.shippingFee) %>.</span></div>
+        <div class="perk"><%- icon('cash') %><span><strong>Cash on Delivery available.</strong> Or pay online at checkout.</span></div>
+        <div class="perk"><%- icon('returns') %><span><strong>Easy cancellation.</strong> Cancel any time before your order ships.</span></div>
+      </div>
+
+      <% if (product.highlights.length) { %>
+        <ul class="highlights" aria-label="Highlights">
+          <% product.highlights.forEach(function (h) { %><li><%- icon('check') %><span><%= h %></span></li><% }) %>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+
+  <section class="pdp-section" aria-labelledby="about-title">
+    <h2 id="about-title">About this product</h2>
+    <p class="description"><%= product.description %></p>
+    <table class="spec-table">
+      <tbody>
+        <tr><th scope="row">Brand</th><td><%= product.brand.name %></td></tr>
+        <tr><th scope="row">Category</th><td><%= product.category.name %></td></tr>
+        <tr><th scope="row">Item code</th><td class="num"><%= String(product._id).slice(-8).toUpperCase() %></td></tr>
+        <tr><th scope="row">Availability</th><td><%= product.stock > 0 ? `In stock (${product.stock})` : 'Out of stock' %></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="pdp-section" id="reviews" aria-labelledby="reviews-title">
+    <h2 id="reviews-title">Ratings &amp; reviews</h2>
+    <div class="reviews-layout">
+      <div class="rating-summary">
+        <div class="rating-big"><strong><%= product.rating.count ? product.rating.average.toFixed(1) : '–' %></strong><span class="muted">out of 5</span></div>
+        <div class="mt-1"><%- stars(product.rating.average) %></div>
+        <p class="muted small mt-1 mb-0">Based on <%= pluralize(product.rating.count, 'verified review') %></p>
+        <div class="rating-bars">
+          <% [5, 4, 3, 2, 1].forEach(function (n) { %>
+            <div class="rating-bar">
+              <span><%= n %> ★</span>
+              <progress max="<%= Math.max(product.rating.count, 1) %>" value="<%= distribution[n] %>" aria-label="<%= distribution[n] %> reviews with <%= n %> stars"></progress>
+              <span class="num"><%= distribution[n] %></span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+
+      <div class="stack">
+        <% if (canReview) { %>
+          <form class="review-form" id="write-review" action="/products/<%= product.slug %>/reviews" method="post">
+            <input type="hidden" name="_csrf" value="<%= csrfToken() %>">
+            <h3><%= userReview ? 'Update your review' : 'Write a review' %></h3>
+            <fieldset class="star-input">
+              <legend class="sr-only">Your rating</legend>
+              <% for (let i = 5; i >= 1; i -= 1) { %>
+                <input type="radio" id="rating-<%= i %>" name="rating" value="<%= i %>" required <%= userReview && userReview.rating === i ? 'checked' : '' %>>
+                <label for="rating-<%= i %>" title="<%= i %> star<%= i > 1 ? 's' : '' %>"><%- icon('star') %><span class="sr-only"><%= i %> stars</span></label>
+              <% } %>
+            </fieldset>
+            <div class="field mt-2">
+              <label class="label" for="review-title">Title <span class="optional">(optional)</span></label>
+              <input class="input" id="review-title" name="title" maxlength="100" value="<%= userReview ? userReview.title : '' %>" placeholder="Sum it up in a few words">
+            </div>
+            <div class="field">
+              <label class="label" for="review-comment">Your review</label>
+              <textarea class="textarea" id="review-comment" name="comment" required minlength="3" maxlength="1000" placeholder="What did you like or dislike?"><%= userReview ? userReview.comment : '' %></textarea>
+            </div>
+            <button class="btn btn-primary mt-2" type="submit"><%= userReview ? 'Update review' : 'Publish review' %></button>
+          </form>
+        <% } else if (!currentUser) { %>
+          <p class="muted"><a href="/login?next=<%= encodeURIComponent('/products/' + product.slug + '#reviews') %>">Sign in</a> to review products you’ve bought.</p>
+        <% } else { %>
+          <p class="muted">Only customers who have ordered this product can review it.</p>
+        <% } %>
+
+        <% if (reviews.length) { %>
+          <div class="review-list">
+            <% reviews.forEach(function (r) { %>
+              <article class="review">
+                <div class="review-head">
+                  <%- stars(r.rating) %>
+                  <span class="review-meta">
+                    <% if (r.verifiedPurchase) { %><span class="verified"><%- icon('check-circle', 'icon-sm') %> Verified purchase</span><% } %>
+                    <time datetime="<%= new Date(r.createdAt).toISOString() %>"><%= formatDate(r.createdAt) %></time>
+                  </span>
+                </div>
+                <% if (r.title) { %><h3><%= r.title %></h3><% } %>
+                <p class="mt-1"><%= r.comment %></p>
+                <p class="review-meta mt-1">— <%= r.authorName %></p>
+              </article>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="empty-state">
+            <span class="icon-wrap"><%- icon('star') %></span>
+            <h2>No reviews yet</h2>
+            <p>Bought this product? Be the first to share what you think.</p>
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </section>
+
+  <% if (related.length) { %>
+    <section class="pdp-section" aria-labelledby="related-title">
+      <div class="section-head">
+        <h2 id="related-title">You may also like</h2>
+        <a class="link-arrow" href="/products?category=<%= product.category.slug %>">More in <%= product.category.name %> <%- icon('arrow-right', 'icon-sm') %></a>
+      </div>
+      <div class="product-grid">
+        <% related.forEach(function (p) { %><%- include('../partials/product-card', { product: p }) %><% }) %>
+      </div>
+    </section>
+  <% } %>
+</div>
