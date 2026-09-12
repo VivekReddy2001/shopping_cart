@@ -42,7 +42,7 @@
     "bcryptjs": "^3.0.3",
     "compression": "^1.7.5",
     "connect-mongo": "^5.1.0",
-    "dotenv": "^16.4.7",
+    "dotenv": "^17.4.2",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "express-ejs-layouts": "^2.5.1",
