@@ -1,5 +1,6 @@
 'use strict';
 
+const os = require('node:os');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const request = require('supertest');
@@ -12,7 +13,11 @@ let mongod;
 
 async function startDatabase() {
   mongod = await MongoMemoryServer.create();
-  await mongoose.connect(mongod.getUri('kartly-test'));
+  // MongoDB driver >= 7.6 loads `os` with a dynamic import(), which Jest's
+  // CommonJS sandbox rejects; the handshake then goes out without its
+  // `driver` block and the server refuses it. Handing the driver `os`
+  // directly avoids the import. Production (plain Node) is unaffected.
+  await mongoose.connect(mongod.getUri('kartly-test'), { runtimeAdapters: { os } });
   await Promise.all(Object.values(models).map((Model) => Model.init()));
 }
 

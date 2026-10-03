@@ -3,7 +3,7 @@
 const path = require('node:path');
 const express = require('express');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const { MongoStore } = require('connect-mongo');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
 const compression = require('compression');
