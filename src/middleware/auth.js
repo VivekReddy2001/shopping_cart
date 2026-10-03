@@ -31,7 +31,7 @@ async function attachUser(req, res, next) {
 function redirectToLogin(req, res) {
   req.flash('info', 'Please sign in to continue.');
   const nextPath = req.method === 'GET' ? req.originalUrl : req.get('referer') || '/';
-  let target = '/';
+  let target;
   try {
     target = nextPath.startsWith('http') ? new URL(nextPath).pathname : nextPath;
   } catch {

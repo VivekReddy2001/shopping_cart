@@ -9,7 +9,7 @@ stock-safe orders, **PDF invoices**, order tracking and a complete **admin dashb
 server-rendered, covered by automated tests and deployable for free.
 
 [![CI](https://github.com/VivekReddy2001/shopping_cart/actions/workflows/ci.yml/badge.svg)](https://github.com/VivekReddy2001/shopping_cart/actions/workflows/ci.yml)
-[![Node.js](https://img.shields.io/badge/Node.js-20%20%7C%2022-3C873A?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-22%20%7C%2024-3C873A?logo=node.js&logoColor=white)](https://nodejs.org)
 [![Express](https://img.shields.io/badge/Express-5-000000?logo=express&logoColor=white)](https://expressjs.com)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
 [![License: MIT](https://img.shields.io/badge/License-MIT-6D28D9.svg)](LICENSE)
@@ -154,10 +154,10 @@ Everything runs with **one command and no database installation** — see [Getti
 - Versioned REST API (`/api/v1`) with a consistent envelope, correct status codes and machine-readable error codes.
 - **Zero-config development**: no `MONGODB_URI`? An in-memory MongoDB starts automatically and seeds itself.
 - Seed script with a deterministic PRNG, so the demo store (products, customers, ~40 orders) is reproducible.
-- **77 automated tests** (Jest + Supertest + in-memory MongoDB) covering auth, catalogue, cart, checkout
+- **78 automated tests** (Jest + Supertest + in-memory MongoDB) covering auth, catalogue, cart, checkout
   concurrency, order transitions, PDF invoices, security headers, no-JavaScript form flows and rendered
   pages — plus a clean `npm audit`.
-- GitHub Actions CI on Node 20 and 22, ESLint + Prettier, Dockerfile and docker-compose, Render blueprint.
+- GitHub Actions CI on Node 22 and 24, ESLint + Prettier, Dockerfile and docker-compose, Render blueprint.
 - Strict Content-Security-Policy with **no inline scripts or styles**, self-hosted subset fonts and an SVG icon sprite.
 - SEO basics done properly: canonical URLs, Open Graph and Twitter card metadata, a generated
   `/sitemap.xml` covering every category and in-stock product, and a `robots.txt` that points at it.
@@ -170,7 +170,7 @@ Everything runs with **one command and no database installation** — see [Getti
 | ---------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | Runtime    | **Node.js 20/22**                                           | LTS, matches free hosting tiers                                                    |
 | Framework  | **Express 5**                                               | Native async error handling, minimal surface                                       |
-| Database   | **MongoDB + Mongoose 8**                                    | Flexible product documents, free Atlas tier, first-class aggregation for analytics |
+| Database   | **MongoDB + Mongoose 9**                                    | Flexible product documents, free Atlas tier, first-class aggregation for analytics |
 | Views      | **EJS + express-ejs-layouts**                               | Server-rendered HTML, fast first paint, SEO-friendly                               |
 | Sessions   | **express-session + connect-mongo**                         | Sessions stored in MongoDB, so any instance can serve any request                  |
 | Auth       | **bcryptjs**                                                | Pure-JS hashing, no native build step on free hosts                                |
@@ -633,7 +633,7 @@ curl -s -b $JAR -H "X-CSRF-Token: $TOKEN" -H 'Content-Type: application/json' -d
 
 ### Prerequisites
 
-- **Node.js 20 or newer** (`node -v`) and npm
+- **Node.js 22.13 or newer** (`node -v`) and npm
 - MongoDB is **optional** in development — see below
 
 ### Quick start (no database installation)
@@ -711,7 +711,7 @@ npm test
 ```
 
 Jest boots a real in-memory MongoDB and drives the actual Express app with Supertest — no mocked database,
-no mocked HTTP. 77 tests across 7 suites, and `npm audit` reports no known vulnerabilities. The suites cover:
+no mocked HTTP. 78 tests across 8 suites, and `npm audit` reports no known vulnerabilities. The suites cover:
 
 | Suite                             | What it proves                                                                                                                                                                                                        |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -722,6 +722,7 @@ no mocked HTTP. 77 tests across 7 suites, and `npm audit` reports no known vulne
 | `orders.test.js`                  | Checkout validation, price snapshots, **concurrent checkout for the last unit**, sequential invoice numbers, IDOR protection, cancellation + restock + refund, admin transitions, PDF invoice, verified-buyer reviews |
 | `web.test.js`                     | Rendered pages, HTML fragment responses, 404s, auth redirects, security headers, the full browser flow (sign in → cart → checkout → order page → invoice), admin pages, seeder idempotency                            |
 | `progressive-enhancement.test.js` | The whole cart flow driven by plain form posts with JavaScript disabled, `next`-parameter safety, friendly recovery from rejected changes, `sitemap.xml`, `robots.txt` and canonical/Open Graph metadata              |
+| `session-store.test.js`           | The production session store: sessions persisted to MongoDB through connect-mongo and honoured on the next request (the other suites use an in-memory store)                                                          |
 
 ## Deployment
 

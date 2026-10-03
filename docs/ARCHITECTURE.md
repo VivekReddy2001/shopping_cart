@@ -171,7 +171,7 @@ flowchart LR
     Dev["Developer<br/>git push"]
     subgraph GH["GitHub"]
         Repo["Repository"]
-        CI["Actions CI<br/>lint · test on Node 20 + 22"]
+        CI["Actions CI<br/>lint · test on Node 22 + 24"]
     end
 
     subgraph Render["Render — free web service"]
@@ -826,7 +826,7 @@ flowchart TB
 
 67 tests run against a **real MongoDB** started in memory — indexes, TTLs, unique constraints and
 atomic operators all behave as they will in production, which a mocked model layer could never show.
-CI runs the suite on Node 20 and 22 on every push.
+CI runs the suite on Node 22 and 24 on every push.
 
 ## 3.4 Scaling path
 
